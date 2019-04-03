@@ -1,0 +1,29 @@
+---
+title: "Proposal"
+author: "cyber-atlas"
+date: "April 2, 2019"
+output: html_document
+---
+
+```{r}
+
+install.packages("quantmod")
+library(quantmod)
+
+```
+
+
+
+```{r}
+#Define start and End dates
+start <- as.Date("2018-01-01")
+end <- as.Date("2019-04-02")
+
+
+getSymbols(c("AAPL", "AMD"), src="yahoo", from = start, to = end)
+?getSymbols
+
+class(AAPL)
+head(AMD)
+tail(AMD)
+```
