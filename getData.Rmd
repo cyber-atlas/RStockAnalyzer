@@ -5,25 +5,48 @@ date: "April 2, 2019"
 output: html_document
 ---
 
-```{r}
 
+Gets us the packages that we need to get the data.
+We are using the Quantmod library as of now
+
+```{r}
 install.packages("quantmod")
 library(quantmod)
-
 ```
 
+
+The start and endates for these samples. It pulls data based on the day. I need to see if it is possible to find stuff for intraday trading, but this helps us get started for now. 
 
 
 ```{r}
 #Define start and End dates
 start <- as.Date("2018-01-01")
 end <- as.Date("2019-04-02")
+```
 
+Get some of the symbols that we will be looking at in the timefram that we are looking at. 
 
-getSymbols(c("AAPL", "AMD"), src="yahoo", from = start, to = end)
+```{r}
 ?getSymbols
+#I tried to add SOX but it failed, I might have the symbol wrong...
+getSymbols(c("AAPL", "AMD", "SPY", "MU"), src="yahoo", from = start, to = end)
+```
+<br> We ran into issues getting SOX to import, I probably goofed and got the wrong symbol. 
 
-class(AAPL)
+
+
+The data is saved as an xts object. From what I could tell it is very similar to a dataframe except it has more fields. Also showing some of the data.
+
+```{r}
+class(AMD)
+
 head(AMD)
 tail(AMD)
+
+head(SPY)
+tail(SPY)
+
+head(MU)
+tail(MU)
+
 ```

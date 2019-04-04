@@ -15,8 +15,9 @@ Datasource:
   The datasource that we will be using is Yahoo Finance
   https://finance.yahoo.com/
   We will be getting our data through the R quantmod library
-  The library pulls data from Yahoo Finance and us to analyze stock prices from a time period that we define. 
+  The library pulls data from Yahoo Finance and allows us to analyze stock prices from a time period that we define. 
   We will be looking at the stock prices of stocks traded in the NYESE as well as overall market indexes that are meant capture the moves in the market.
+  Example datasets can be found in the getData.Rmd File also cound in this repository
 
 Data Exploration Goals:
   We will be looking at mapping how individual stocks perform over different time intervals. 
