@@ -12,6 +12,7 @@ We are using the Quantmod library as of now
 ```{r}
 install.packages("quantmod")
 library(quantmod)
+library(ggplot2)
 ```
 
 
@@ -28,6 +29,9 @@ Get some of the symbols that we will be looking at in the timefram that we are l
 
 ```{r}
 ?getSymbols
+
+AMD2 <- getSymbols("AMD", src = "yahoo", from = "2017-01-01", to = "2019-04-20", auto.assign = FALSE)
+
 #I tried to add SOX but it failed, I might have the symbol wrong...
 getSymbols(c("AAPL", "AMD", "SPY", "MU"), src="yahoo", from = start, to = end)
 ```
@@ -48,5 +52,34 @@ tail(SPY)
 
 head(MU)
 tail(MU)
+
+names(MU)
+
+```
+
+Let's plot the stock data
+
+The close prices of Apple over the given timeframe
+```{r}
+
+plot(AAPL[, "AAPL.Close"], main = "AAPL")
+```
+
+Another way to plot, this time using the AMD close prices
+```{r}
+amd.df<- data.frame(AMD)
+
+ggplot(AMD, aes(x=index(AMD), y=AMD[,6]))+geom_line(color="black")+scale_x_date(date_labels = "%b %y", date_breaks = "6 months")
+
+```
+
+
+Line charts are great and all but candlestick charts are more used and more useful.
+
+This is the candle stick chart for MU 
+
+```{r}
+
+candleChart(MU, up.col = "green", dn.col = "red", theme = "white")
 
 ```
