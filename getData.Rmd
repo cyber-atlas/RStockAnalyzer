@@ -22,7 +22,7 @@ The start and endates for these samples. It pulls data based on the day. I need 
 ```{r}
 #Define start and End dates
 start <- as.Date("2018-01-01")
-end <- as.Date("2019-04-02")
+end <- as.Date("2019-04-23")
 ```
 
 Get some of the symbols that we will be looking at in the timefram that we are looking at. 
@@ -83,3 +83,6 @@ This is the candle stick chart for MU
 candleChart(MU, up.col = "green", dn.col = "red", theme = "white")
 
 ```
+
+
+

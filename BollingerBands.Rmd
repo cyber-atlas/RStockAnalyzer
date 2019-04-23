@@ -1,0 +1,56 @@
+---
+title: "BollingerBands"
+author: "cyber-atlas"
+date: "April 23, 2019"
+output: html_document
+---
+ 
+```{r}
+# install.packages("quantmod")
+library(quantmod)
+library(ggplot2)
+
+# install.packages("magrittr")
+library(magrittr)
+```
+
+Getting the data
+
+```{r}
+#Define start and End dates
+start <- as.Date("2018-04-23")
+end <- as.Date("2019-04-23")
+getSymbols(c("AAPL", "AMD", "SPY", "MU"), src="yahoo", from = start, to = end)
+
+```
+
+Bollinger bands are fundamentally based on the simple moving average, so lets get that
+
+```{r}
+#Charts the prices of the SPY 500
+candleChart(SPY, up.col="green", dn.col="red", theme="white")
+#Adds the simple moving average
+plot(addSMA(n = 20))
+
+```
+
+```{r}
+
+candleChart(SPY, up.col="green", dn.col="red", theme="white")
+addMACD()
+```
+
+
+```{r}
+
+candleChart(SPY, up.col="green", dn.col="red", theme="white")
+#Adds Bollinger Bands
+addBBands()
+
+
+```
+
+```{r}
+chartSeries(AMD, type='candlesticks')
+
+```
