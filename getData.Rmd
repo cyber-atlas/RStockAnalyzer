@@ -10,7 +10,7 @@ Gets us the packages that we need to get the data.
 We are using the Quantmod library as of now
 
 ```{r}
-install.packages("quantmod")
+# install.packages("quantmod")
 library(quantmod)
 library(ggplot2)
 ```
@@ -84,5 +84,7 @@ candleChart(MU, up.col = "green", dn.col = "red", theme = "white")
 
 ```
 
+Using this as a guide for obtaining the data as well as basic plotting techniques
 
+https://ntguardian.wordpress.com/2017/03/27/introduction-stock-market-data-r-1/
 
