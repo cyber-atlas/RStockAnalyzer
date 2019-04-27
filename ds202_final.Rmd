@@ -1,0 +1,107 @@
+---
+title: "ds202_final"
+author: "Blake Inderski"
+date: "4/26/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library("dplyr")
+library("tidyr")
+library("tidyverse")
+library("ggplot2")
+library("readxl")
+library("ggrepel")
+library("RColorBrewer")
+
+#install.packages("forecast")
+#install.packages("quadprog") #package ‘quadprog’ is not available (for R version 3.5.1)
+#install.packages("tidyquant")
+#library("tidyquant")
+#install.packages("quantmod")
+library("quantmod")
+```
+
+The start and endates for these samples. It pulls data based on the day. I need to see if it is possible to find stuff for intraday trading, but this helps us get started for now. 
+
+
+```{r}
+#Define start and End dates
+start <- as.Date("2018-01-01")
+end <- as.Date("2019-04-01")
+```
+
+Get some of the symbols that we will be looking at in the timefram that we are looking at. 
+
+```{r}
+?getSymbols
+getSymbols(c("BA", "EADSF"), src="yahoo", from = start, to = end)
+```
+
+
+The data is saved as an xts object. From what I could tell it is very similar to a dataframe except it has more fields. Also showing some of the data.
+
+
+Let's plot the stock data
+
+The close prices of Apple over the given timeframe
+```{r}
+plot(BA[, "BA.Close"], main = "BA")
+plot(EADSF[, "EADSF.Close"], main = "EADSF")
+```
+
+Another way to plot, this time using the AMD close prices
+```{r}
+#https://www.axios.com/boeing-737-max-crash-what-know-a5087b8e-1787-4de5-bece-d1350d5695cf.html
+#On 29 October 2018, the Boeing 737 MAX 8 operating the route crashed into the Java Sea 12 minutes after takeoff, killing all 189 passengers and crew.
+#On 10 March 2019, the Boeing 737 MAX 8 aircraft which operated the flight crashed near the town of Bishoftu six minutes after takeoff, killing all 157 people aboard.
+
+#https://stackoverflow.com/questions/3386850/how-can-i-change-xts-to-data-frame-and-keep-index
+ba_df <- data.frame(date=index(BA), coredata(BA)) %>% 
+  mutate(BA.day_difference = BA.High-BA.Low) %>%
+  mutate(BA.scale_max = BA.Close/max(BA.Close))
+eadsf_df <- data.frame(date=index(EADSF), coredata(EADSF)) %>% 
+  mutate(EADSF.day_difference = EADSF.High-EADSF.Low) %>%
+  mutate(EADSF.scale_max = EADSF.Close/max(EADSF.Close))
+
+ggplot(ba_df, aes(x=date, y=BA.scale_max))+
+  coord_cartesian(xlim=c(start+20, end-20), ylim=c(0.66, 1))+
+  geom_line(color="#0039a6")+
+  geom_line(data=eadsf_df, aes(y=EADSF.scale_max), color="#74d2e7")+
+  scale_x_date(date_labels = "%b %y", date_breaks = "1 month")+
+  ylab("closing value")+
+  geom_vline(xintercept = as.Date("2018-10-29"), size=0.5, linetype="dotted")+
+  geom_vline(xintercept = as.Date("2019-03-10"), size=0.5, linetype="dotted")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))+
+  annotate("text", x=as.Date("2018-10-29"), 
+           y=0.65, label="Lion Air 737 Max 8", angle=90, vjust=-0.5, hjust=0, size=3)+
+  annotate("text", x=as.Date("2019-03-10"), 
+           y=0.65, label="Ethiopian Airlines 737 Max 8", angle=90, vjust=-0.5, hjust=0, size=3)
+
+ggplot(ba_df, aes(x=date, y=BA.day_difference/max(ba_df$BA.Close)))+
+  coord_cartesian(xlim=c(start+20, end-20), ylim=c(0, 0.085))+
+  geom_line(color="#0039a6")+
+  geom_line(data=eadsf_df, aes(y=EADSF.day_difference/max(eadsf_df$EADSF.Close)), color="#74d2e7")+
+  scale_x_date(date_labels = "%b %y", date_breaks = "1 month")+
+  ylab("daily volatility")+
+  geom_vline(xintercept = as.Date("2018-10-29"), size=0.5, linetype="dotted")+
+  geom_vline(xintercept = as.Date("2019-03-10"), size=0.5, linetype="dotted")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))+
+  annotate("text", x=as.Date("2018-10-29"), 
+           y=0.0875, label="Lion Air 737 Max 8", angle=90, vjust=-0.5, hjust=1, size=3)+
+  annotate("text", x=as.Date("2019-03-10"), 
+           y=0.0875, label="Ethiopian Airlines 737 Max 8", angle=90, vjust=-0.5, hjust=1, size=3)
+```
+
+
+Try to find dates corresponding to Boeing volatility inflection points.
