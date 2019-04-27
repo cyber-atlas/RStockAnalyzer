@@ -104,11 +104,14 @@ Now lets take a look at Nvidia over the last month, and compare them with their 
 start <- as.Date("2019-03-01")
 end <- as.Date("2019-04-01")
 getSymbols(c("AMD", "NVDA"), src="yahoo", from = start, to = end)
-candleChart(NVDA, up.col = "green", dn.col = "red", theme = "white")
-candleChart(AMD, up.col = "green", dn.col = "red", theme = "white")
+candleChart(NVDA, up.col = "green", dn.col = "red")
+candleChart(AMD, up.col = "green", dn.col = "red")
 ```
 
 A little longer look at the comparison of the two companies.
+
+NVidia RTX 2080 released 9-10-2018
+AMD Radeon VII released 2-7-2019
 ```{r longterm}
 start <- as.Date("2015-03-01")
 end <- as.Date("2019-04-01")
@@ -123,3 +126,14 @@ getSymbols("BTC-USD", src="yahoo", from = start, to = end)
 candleChart(`BTC-USD`, up.col = "green", dn.col = "red", theme = "white")
 ```
 
+
+Now let's try comparing phone companies, like Apple, Samsung, etc.
+
+```{r get phones}
+start <- as.Date("2018-01-01")
+end <- as.Date("2019-04-02")
+
+getSymbols(c("MSFT", "SNE", "NTDOY"), src="yahoo", from = start, to = end)
+candleChart(MSFT, up.col = "green", dn.col = "red", theme = "white")
+candleChart(SNE, up.col = "green", dn.col = "red", theme = "white")
+candleChart(NTDOY, up.col = "green", dn.col = "red", theme = "white")
