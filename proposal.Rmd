@@ -1,0 +1,35 @@
+---
+title: "proposal.rmd"
+author: "cyber-atlas"
+date: "April 2, 2019"
+output: html_document
+---
+
+Names:
+  Sam Begley
+  Blake Inderski
+  Timothy Potter
+  Alex Stevenson - coordinator
+  
+Datasource:
+  The datasource that we will be using is Yahoo Finance
+  https://finance.yahoo.com/
+  We will be getting our data through the R quantmod library
+  The library pulls data from Yahoo Finance and allows us to analyze stock prices from a time period that we define. 
+  We will be looking at the stock prices of stocks traded in the NYESE as well as overall market indexes that are meant capture the moves in the market.
+  Example datasets can be found in the getData.Rmd File also cound in this repository
+
+Data Exploration Goals:
+  We will be looking at mapping how individual stocks perform over different time intervals. 
+  We will be looking at stocks in related markets and looking for trends that might indicate future performance. 
+  We will consider the effectiveness of common stock trading methodologies:
+    ex consider the actual effectiveness of using Bollinger Bands
+    ex Is buy the dip really effective? Or does it lead to losses
+  We will look at how indidual stocks perfeorm vs their respective indexes
+    ex If Micron goes up will the SOX index fund also go up? What are the relations in percents should they exist?
+   We will be looking at how related stocks affect each other? 
+    ex If Micron goes up will AMD and Intel follow? How long does it take on average?
+    ex If AMD goes up, does Intel go down? How long does it take on average?
+  Can we use identifiable trends to predict where stocks are going to move in the future?
+  
+
