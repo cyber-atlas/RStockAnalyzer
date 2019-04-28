@@ -56,7 +56,10 @@ addBBands()
 
 ```{r}
 chartSeries(AMD, type='candlesticks')
-
+#Now let's add Bollinger Bands to it
+addBBands()
+#Can merge data 
+head(as.xts(merge(AMD, AAPL)))
 ```
 
 
@@ -72,17 +75,12 @@ SPY2 <- tq_get("SPY")
 
 # Had a bunch of issues with the mutate functions that were provided by the library
 # unzip(A)
-SPY2 %>%
-    mutate(SMA.close = SMA(unlist(SPY2[,2]), n=20)) %>%
+SPY2 %<>%
+    mutate(SMA.close = SMA(unlist(SPY2[,2]), n=20)) 
+
+head(SPY2,30)
 
 
-# 
-# # SMA
-# SPY2 %>%
-    ggplot(aes(x = date, y = close)) +
-    geom_line() +           # Plot stock price
-    geom_bbands(aes(high = high, low = low, close = close), SMA.close) +
-    coord_x_date(xlim = c(today() - years(1), today()), ylim = c(80, 130))
 
 
 ```
@@ -106,9 +104,10 @@ https://cran.r-project.org/web/packages/quantmod/index.html )
 #     coord_x_date(xlim = c(today() - years(1), today()), ylim = c(80, 130))
 # 
 
-```
 
 
+Could use 
+https://www.r-bloggers.com/stock-analysis-using-r/
 
 Sources:
 
