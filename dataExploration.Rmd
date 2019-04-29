@@ -37,57 +37,7 @@ AMD2 <- getSymbols("AMD", src = "yahoo", from = "2017-01-01", to = "2019-04-20",
 #I tried to add SOX but it failed, I might have the symbol wrong...
 getSymbols(c("AAPL", "AMD", "SPY", "MU", "NVDA"), src="yahoo", from = start, to = end)
 ```
-<br> We ran into issues getting SOX to import, I probably goofed and got the wrong symbol. 
 
-
-
-The data is saved as an xts object. From what I could tell it is very similar to a dataframe except it has more fields. Also showing some of the data.
-
-```{r}
-class(AMD)
-
-head(AMD)
-tail(AMD)
-
-head(SPY)
-tail(SPY)
-
-head(MU)
-tail(MU)
-
-names(MU)
-
-head(NVDA)
-tail(NVDA)
-
-```
-
-Let's plot the stock data
-
-The close prices of Apple over the given timeframe
-```{r}
-
-plot(AAPL[, "AAPL.Close"], main = "AAPL")
-```
-
-Another way to plot, this time using the AMD close prices
-```{r}
-amd.df<- data.frame(AMD)
-
-ggplot(AMD, aes(x=index(AMD), y=AMD[,6]))+geom_line(color="black")+scale_x_date(date_labels = "%b %y", date_breaks = "6 months")
-
-```
-
-
-Line charts are great and all but candlestick charts are more used and more useful.
-
-This is the candle stick chart for MU 
-
-```{r}
-
-candleChart(MU, up.col = "green", dn.col = "red", theme = "white")
-
-```
 
 Here is a candlestick for Nvidia, and one for AMD.
 
@@ -116,24 +66,80 @@ AMD Radeon VII released 2-7-2019
 start <- as.Date("2015-03-01")
 end <- as.Date("2019-04-01")
 getSymbols(c("AMD", "NVDA"), src="yahoo", from = start, to = end)
-candleChart(NVDA, up.col = "green", dn.col = "red", theme = "white")
-candleChart(AMD, up.col = "green", dn.col = "red", theme = "white")
+lineChart(NVDA, theme = "white")
+lineChart(AMD, theme = "white")
 ```
 
 Let's compare this to the rise of another important stock, Bitcoin.
 ```{r bitcoin}
 getSymbols("BTC-USD", src="yahoo", from = start, to = end)
-candleChart(`BTC-USD`, up.col = "green", dn.col = "red", theme = "white")
+lineChart(`BTC-USD`, theme = "white")
 ```
 
+From Coin Telegraph, 12-22-2018, https://cointelegraph.com/news/following-crypto-mining-crash-gpu-producer-nvidia-worst-performer-in-sp-500
+    
+    From 2016 to September 2018, Nvidia's market value markedly increased from $14 billion to $175 billion as demand for its GPUs in artificial intelligence (AI) and cryptocurrency mining grew. In May, the firm reported its profits from crypto mining for the first time while forecasting a two-thirds drop in sales to miners for Q2.
+    
+    Nvidia initially forecasted insignificant crypto mining-related sales in Q3, while the quarterly report in November revealed that GPU sales for blockchain-related applications had all but disappeared. Nvidia CEO Jensen Huang said that the company's "near-term results reflect excess channel inventory post the cryptocurrency boom, which will be corrected."
+    
+    The disappearance of crypto-related sales has left the company with a "crypto hangover," according to Huang. The cryptocurrency frenzy drove up prices for Nvidia's GPUs, but once that demand disappeared, prices did not decrease quickly enough to attract customers who were waiting for more affordable cards.
+    
+    In addition to the decrease in crypto mining sales, Nvidia's data center segment failed to meet Wall Street expectations, even though revenue grew by 58 percent, per CNBC. Today, Nvidia stock is down 4.09 percent, closing at $129.57.
+    
+    Chip stocks overall have performed poorly this year. The PHLX Semiconductor Index, which tracks major hardware producers like Nvidia and Advanced Micro Systems (AMD) is down 20.37 percent over the last three months. AMD's share price is down 45.42 percent over the same period.
+    
+    The post-mining boom hardware glut has seen a notable drop in prices. AMD's popular Radeon RX580 graphics processing unit (GPU), which has been widely used by crypto miners, is now being sold for $180, down 67 percent from a peak average price around $550 in February 2018.
 
-Now let's try comparing phone companies, like Apple, Samsung, etc.
+Now let's try comparing game companies, like Microsoft, Sony, Nintendo.
 
-```{r get phones}
-start <- as.Date("2018-01-01")
-end <- as.Date("2019-04-02")
+Specifically, we'll take a look at the stock prices of each company around the release of the three newest consoles: the PS4 Pro, Xbox One X, and Nintendo Switch.
+
+PS4 Pro: 11-10-16
+
+Xbox One X: 11-7-17
+
+Nintendo Switch: 3-3-17
+
+Let's take a look at the stock fluctuations from the beginning of 2016 to the end of 2018.
+```{r get consoles}
+start <- as.Date("2016-01-01")
+end <- as.Date("2018-12-31")
 
 getSymbols(c("MSFT", "SNE", "NTDOY"), src="yahoo", from = start, to = end)
 candleChart(MSFT, up.col = "green", dn.col = "red", theme = "white")
 candleChart(SNE, up.col = "green", dn.col = "red", theme = "white")
 candleChart(NTDOY, up.col = "green", dn.col = "red", theme = "white")
+```
+
+Now let's look more closely  here, with 30 days before and after the release of each console for each company.
+
+```{r close consoles}
+sPro <- as.Date("2016-10-10")
+ePro <- as.Date("2016-12-10")
+
+sX <- as.Date("2017-10-7")
+eX <- as.Date("2017-12-7")
+
+sSwitch <- as.Date("2017-2-3")
+eSwitch <- as.Date("2017-4-3")
+
+#Candle charts around the release of the Pro
+getSymbols(c("MSFT", "SNE", "NTDOY"), src="yahoo", from = sPro, to = ePro)
+candleChart(MSFT, up.col = "green", dn.col = "red", theme = "white")
+candleChart(SNE, up.col = "green", dn.col = "red", theme = "white")
+candleChart(NTDOY, up.col = "green", dn.col = "red", theme = "white")
+
+#Candle charts around the release of the X
+getSymbols(c("MSFT", "SNE", "NTDOY"), src="yahoo", from = sX, to = eX)
+candleChart(MSFT, up.col = "green", dn.col = "red", theme = "white")
+candleChart(SNE, up.col = "green", dn.col = "red", theme = "white")
+candleChart(NTDOY, up.col = "green", dn.col = "red", theme = "white")
+
+#Candle charts around the release of the Switch
+getSymbols(c("MSFT", "SNE", "NTDOY"), src="yahoo", from = sSwitch, to = eSwitch)
+candleChart(MSFT, up.col = "green", dn.col = "red", theme = "white")
+candleChart(SNE, up.col = "green", dn.col = "red", theme = "white")
+candleChart(NTDOY, up.col = "green", dn.col = "red", theme = "white")
+```
+
+What canclusions can we draw from this?
