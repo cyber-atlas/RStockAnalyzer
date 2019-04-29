@@ -1,6 +1,6 @@
 ---
-title: "Proposal"
-author: "cyber-atlas"
+title: "Comparison of Like-Minded Companies"
+author: "Tim Potter"
 date: "April 2, 2019"
 output: html_document
 ---
@@ -12,9 +12,12 @@ We are using the Quantmod library as of now
 ```{r}
 #install.packages("tidyquant", repo="http://cran.us.r-project.org")
 #install.packages("quantmod")
+#install.packages("quadprog", repo="http://cran.us.r-project.org")
+#install.packages("forecast", repo="http://cran.us.r-project.org")
 library(quantmod)
 library(ggplot2)
 library(plotly)
+library('forecast')
 ```
 
 
@@ -63,7 +66,7 @@ A little longer look at the comparison of the two companies.
 NVidia RTX 2080 released 9-10-2018
 AMD Radeon VII released 2-7-2019
 ```{r longterm}
-start <- as.Date("2015-03-01")
+start <- as.Date("2017-01-01")
 end <- as.Date("2019-04-01")
 getSymbols(c("AMD", "NVDA"), src="yahoo", from = start, to = end)
 lineChart(NVDA, theme = "white")
@@ -143,3 +146,11 @@ candleChart(NTDOY, up.col = "green", dn.col = "red", theme = "white")
 ```
 
 What conclusions can we draw from this?
+
+
+```{r arima}
+arimaData <- auto.arima(SNE$SNE.Close)
+
+chartSeries(as.ts(SNE$SNE.Close))
+lines(fitted(arimaData), col='red')
+```
