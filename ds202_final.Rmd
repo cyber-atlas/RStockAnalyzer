@@ -18,12 +18,19 @@ library("readxl")
 library("ggrepel")
 library("RColorBrewer")
 
-#install.packages("forecast")
-#install.packages("quadprog") #package ‘quadprog’ is not available (for R version 3.5.1)
+#install.packages("tseries")
+#https://cran.r-project.org/src/contrib/Archive/forecast/
+#install.packages("uroot")
+#install.packages("nnet")
+#install.packages("~/Downloads/forecast_8.4.tar", repos = NULL)
+#https://cran.r-project.org/src/contrib/Archive/quadprog/
+#install.packages("~/Downloads/quadprog_1.5-5.tar", repos = NULL)
 #install.packages("tidyquant")
-#library("tidyquant")
+library("tidyquant")
 #install.packages("quantmod")
 library("quantmod")
+#install.packages("magrittr")
+library('magrittr')
 ```
 
 The start and endates for these samples. It pulls data based on the day. I need to see if it is possible to find stuff for intraday trading, but this helps us get started for now. 
@@ -74,12 +81,12 @@ ggplot(ba_df, aes(x=date, y=BA.scale_max))+
   geom_line(data=eadsf_df, aes(y=EADSF.scale_max), color="#74d2e7")+
   scale_x_date(date_labels = "%b %y", date_breaks = "1 month")+
   ylab("closing value")+
-  geom_vline(xintercept = as.Date("2018-10-29"), size=0.5, linetype="dotted")+
-  geom_vline(xintercept = as.Date("2019-03-10"), size=0.5, linetype="dotted")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         panel.border = element_rect(colour = "black", fill=NA, size=1))+
+  geom_vline(xintercept = as.Date("2018-10-29"), size=0.5, linetype="dotted")+
+  geom_vline(xintercept = as.Date("2019-03-10"), size=0.5, linetype="dotted")+
   annotate("text", x=as.Date("2018-10-29"), 
            y=0.65, label="Lion Air 737 Max 8", angle=90, vjust=-0.5, hjust=0, size=3)+
   annotate("text", x=as.Date("2019-03-10"), 
@@ -91,17 +98,58 @@ ggplot(ba_df, aes(x=date, y=BA.day_difference/max(ba_df$BA.Close)))+
   geom_line(data=eadsf_df, aes(y=EADSF.day_difference/max(eadsf_df$EADSF.Close)), color="#74d2e7")+
   scale_x_date(date_labels = "%b %y", date_breaks = "1 month")+
   ylab("daily volatility")+
-  geom_vline(xintercept = as.Date("2018-10-29"), size=0.5, linetype="dotted")+
-  geom_vline(xintercept = as.Date("2019-03-10"), size=0.5, linetype="dotted")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         panel.border = element_rect(colour = "black", fill=NA, size=1))+
+  geom_vline(xintercept = as.Date("2018-10-29"), size=0.5, linetype="dotted")+
+  geom_vline(xintercept = as.Date("2019-03-10"), size=0.5, linetype="dotted")+
+  #MAX 8 crash dates
   annotate("text", x=as.Date("2018-10-29"), 
            y=0.0875, label="Lion Air 737 Max 8", angle=90, vjust=-0.5, hjust=1, size=3)+
   annotate("text", x=as.Date("2019-03-10"), 
-           y=0.0875, label="Ethiopian Airlines 737 Max 8", angle=90, vjust=-0.5, hjust=1, size=3)
+           y=0.0875, label="Ethiopian Airlines 737 Max 8", angle=90, vjust=-0.5, hjust=1, size=3)+
+  #trade volatility inflection points of interest
+  annotate("text", x=as.Date("2018-02-05"), 
+           y=32.609985/max(ba_df$BA.Close), label="A", vjust=-0.5, hjust=0.5, size=3)+
+  annotate("text", x=as.Date("2018-04-24"), 
+           y=24.390014/max(ba_df$BA.Close), label="B", vjust=-0.5, hjust=0.5, size=3)+
+  annotate("text", x=as.Date("2018-11-20"), 
+           y=25.570008/max(ba_df$BA.Close), label="C", vjust=-0.5, hjust=0.5, size=3)+
+  annotate("text", x=as.Date("2018-12-26"), 
+           y=21.619995/max(ba_df$BA.Close), label="D", vjust=-0.5, hjust=0.5, size=3)
+```
+
+Try to find dates corresponding to Boeing volatility inflection points.
+#https://boeing.mediaroom.com/2018-02-05-Boeing-Debuts-First-737-MAX-7
+#https://boeing.mediaroom.com/2018-04-24-Boeing-Ryanair-Announce-Order-for-25-737-MAX-8s
+#https://www.cnbc.com/2018/11/20/boeing-shares-fall-after-cancelling-conference-call-on-737-issues.html
+#https://www.defensenews.com/land/2018/12/26/heres-the-first-look-at-the-sikorsky-boeing-defiant-helicopter/
+
+
+```{r}
+#https://cran.r-project.org/web/packages/tidyquant/vignettes/TQ04-charting-with-tidyquant.html
+ba_df <- mutate(ba_df, BA.SMA = SMA(unlist(ba_df[,2]), n=20)) %>% 
+  #mutate(below_SMA = BA.Close < BA.SMA)
+  mutate(below_SMA = ifelse(BA.Close < BA.SMA, 1000, 0))
+
+ggplot(ba_df, aes(x = date, y = BA.Close, open = BA.Open, 
+                  high = BA.High, low = BA.Low, close = BA.Close))+
+  coord_cartesian(xlim=c(start+48, end-22), #+20, end-20),
+                  ylim=c(min(ba_df$BA.Close), max(ba_df$BA.Close)))+
+  geom_bar(aes(y=below_SMA), color="#ffb3b3", stat="identity", width=1)+
+  geom_line(color="#0039a6")+ #geom_candlestick()+
+  geom_bbands(ma_fun = SMA, sd = 2, n = 20)+
+  labs(title = "AAPL Candlestick Chart", 
+       subtitle = "BBands with SMA Applied", 
+       y = "Closing Price", x = "date")+ 
+  #theme_tq()
+  scale_x_date(date_labels = "%b %y", date_breaks = "1 month")+
+  ylab("closing value")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
 ```
 
 
-Try to find dates corresponding to Boeing volatility inflection points.
