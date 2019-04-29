@@ -1,0 +1,88 @@
+---
+title: "ARMAPredictions"
+author: "cyber-atlas"
+date: "4/28/2019"
+output: html_document
+---
+
+
+```{r}
+library('quantmod')
+# library(tidyquant)
+library('forecast')
+```
+
+First we will start out by getting the symbols that we need
+
+Let's look at how the S&P500 has been doing over the past year
+
+```{r}
+getSymbols("SPY", src="yahoo", from="2019-01-01")
+```
+
+Let's visualize the chart
+
+```{r}
+chartSeries(SPY)
+```
+
+Let's calculate the returns each day from the stock as a percentage and show the last 10 days of returns. 
+
+```{r}
+Returns <- diff(SPY$SPY.Close)/lag(SPY$SPY.Close, k=1)*1000
+tail(Returns, 10)
+```
+
+Let's plot a histogram of the returns to visualize how well it performs
+
+```{r}
+hist(Returns)
+```
+
+** A bit of background ** 
+
+A common way to prediction method used to predict values in a time series (in our case dates) is the Autoregressive Integrated Moving Average (ARIMA) model. 
+
+ARIMA(P,D,Q)
+
+AR stands for autogregressive, menaing it checks how much a variable correlates with itself. (P)
+
+MA - A moving average of values you are using. 20 is a pretty common one for stocks (Q)
+
+I - Degree of differencing needed to make the data stationary. Ex: degree of 1 replaces every value with the value minus the previous. Or degree 2, gets the difference of the difference (D)
+
+The data needs to be stationary, basically needs to be horizontal, and one way to test is the Dicky Fuller test. 
+
+To make the data stationary you can take the log of the price, then do the differences of the log values.  
+
+When looking at the test, check that the p value is well under .5.
+
+When forcasting a stock we can see with accuracy tomorrow's price within a few cents with relatively high accuracy. This is useful for Swing Traders and Day Traders who rely on the market to move just a little bit in either direction and take their money out. 
+
+**What we did**
+
+Here we decide to use the auto arima function. It looks for the best possible model to fit the data for us. 
+```{r}
+# arimaData <- auto.arima(SPY$SPY.Close, ic="bic")
+# fit <- auto.arima(SPY$SPY.Close, ic="bic")
+arimaData <- auto.arima(SPY$SPY.Close)
+# fit<- auto.arima(SPY$SPY.Close)
+arimaData
+```
+Plot it
+
+```{r}
+plot(as.ts(SPY$SPY.Close) )
+lines(fitted(arimaData), col="red")
+# lines(fitted(fit), col="green")
+```
+As we can see the lines fit together pretty well
+
+Let's try to forecast the date
+
+```{r}
+# fit.forecast <- forecast.Arima(arimaData)
+fit.forecast <- forecast(arimaData)
+fit.forecast
+```
+
