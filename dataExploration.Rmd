@@ -142,4 +142,4 @@ candleChart(SNE, up.col = "green", dn.col = "red", theme = "white")
 candleChart(NTDOY, up.col = "green", dn.col = "red", theme = "white")
 ```
 
-What canclusions can we draw from this?
+What conclusions can we draw from this?
