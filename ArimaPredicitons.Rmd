@@ -72,10 +72,14 @@ arimaData
 Plot it
 
 ```{r}
-plot(as.ts(SPY$SPY.Close) )
-lines(fitted(arimaData), col="red")
+# plot(as.ts(SPY$SPY.Close) )
+# lines(fitted(arimaData), col="red")
 # lines(fitted(fit), col="green")
+
+chartSeries(as.ts(SPY$SPY.Close))
+lines(fitted(arimaData), col='red')
 ```
+
 As we can see the lines fit together pretty well
 
 Let's try to forecast the date
@@ -85,4 +89,7 @@ Let's try to forecast the date
 fit.forecast <- forecast(arimaData)
 fit.forecast
 ```
+
+Source
+The main source I used was R for Data Science Cookbook By YuWei Chiu
 
