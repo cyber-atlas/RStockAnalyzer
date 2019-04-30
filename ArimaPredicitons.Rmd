@@ -8,8 +8,9 @@ output: html_document
 
 ```{r}
 library('quantmod')
-# library(tidyquant)
+library(tidyquant)
 library('forecast')
+library('ggplot2')
 ```
 
 First we will start out by getting the symbols that we need
@@ -18,12 +19,13 @@ Let's look at how the S&P500 has been doing over the past year
 
 ```{r}
 getSymbols("SPY", src="yahoo", from="2019-01-01")
+getSymbols("AAPL", src="yahoo", from="2019-01-01")
 ```
 
 Let's visualize the chart
 
 ```{r}
-chartSeries(SPY)
+chartSeries(SPY)+add_TA()
 ```
 
 Let's calculate the returns each day from the stock as a percentage and show the last 10 days of returns. 
@@ -36,7 +38,20 @@ tail(Returns, 10)
 Let's plot a histogram of the returns to visualize how well it performs
 
 ```{r}
-hist(Returns)
+
+Returns<-fortify(Returns)
+
+ggplot(Returns, aes(x=SPY.Close) )+
+  geom_histogram(binwidth = 2, color="black",fill="white",center=0)+ 
+  scale_x_continuous(breaks=seq(-26, 36, 2))+
+  geom_vline(xintercept = 0, col = 'darkred')+
+  scale_y_continuous(breaks=seq(-1, 25, 2))+
+  ggtitle("Frequency of Daily Percentage Change")+
+  xlab("Percentage Difference")+
+  ylab("Number of Occurances")
+
+#hist(Returns)
+
 ```
 
 ** A bit of background ** 
@@ -63,19 +78,12 @@ When forcasting a stock we can see with accuracy tomorrow's price within a few c
 
 Here we decide to use the auto arima function. It looks for the best possible model to fit the data for us. 
 ```{r}
-# arimaData <- auto.arima(SPY$SPY.Close, ic="bic")
-# fit <- auto.arima(SPY$SPY.Close, ic="bic")
 arimaData <- auto.arima(SPY$SPY.Close)
-# fit<- auto.arima(SPY$SPY.Close)
 arimaData
 ```
 Plot it
 
 ```{r}
-# plot(as.ts(SPY$SPY.Close) )
-# lines(fitted(arimaData), col="red")
-# lines(fitted(fit), col="green")
-
 chartSeries(as.ts(SPY$SPY.Close))
 lines(fitted(arimaData), col='red')
 ```
