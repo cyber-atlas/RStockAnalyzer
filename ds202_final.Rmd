@@ -221,6 +221,6 @@ ggplot(box_df, aes(x="SPY", y=`change per day`)) +
 
 message("mean percent change ", mean(box_df$`percent change`))
 message("median percent change ", median(box_df$`percent change`))
-box_df$`middle day` <- as.Date(box_df$`middle day`)
+#box_df$`middle day` <- as.Date(box_df$`middle day`)
 ```
 
