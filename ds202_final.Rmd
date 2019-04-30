@@ -47,7 +47,7 @@ Get some of the symbols that we will be looking at in the timefram that we are l
 
 ```{r}
 ?getSymbols
-getSymbols(c("BA", "EADSF"), src="yahoo", from = start, to = end)
+getSymbols(c("BA", "EADSF", "SPY"), src="yahoo", from = start, to = end)
 ```
 
 
@@ -82,7 +82,7 @@ ggplot(ba_df, aes(x=date, y=BA.scale_max))+
   geom_line(color="#0039a6")+
   geom_line(data=eadsf_df, aes(y=EADSF.scale_max), color="#74d2e7")+
   scale_x_date(date_labels = "%b %y", date_breaks = "1 month")+
-  ylab("closing value")+
+  ylab("proportional closing value")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
@@ -99,7 +99,7 @@ ggplot(ba_df, aes(x=date, y=BA.day_difference/max(ba_df$BA.Close)))+
   geom_line(color="#0039a6")+
   geom_line(data=eadsf_df, aes(y=EADSF.day_difference/max(eadsf_df$EADSF.Close)), color="#74d2e7")+
   scale_x_date(date_labels = "%b %y", date_breaks = "1 month")+
-  ylab("daily volatility")+
+  ylab("proportional daily volatility")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
@@ -122,41 +122,51 @@ ggplot(ba_df, aes(x=date, y=BA.day_difference/max(ba_df$BA.Close)))+
            y=21.619995/max(ba_df$BA.Close), label="D", vjust=-0.5, hjust=0.5, size=3)
 ```
 
-Try to find dates corresponding to Boeing volatility inflection points.
-#https://boeing.mediaroom.com/2018-02-05-Boeing-Debuts-First-737-MAX-7
-#https://boeing.mediaroom.com/2018-04-24-Boeing-Ryanair-Announce-Order-for-25-737-MAX-8s
-#https://www.cnbc.com/2018/11/20/boeing-shares-fall-after-cancelling-conference-call-on-737-issues.html
-#https://www.defensenews.com/land/2018/12/26/heres-the-first-look-at-the-sikorsky-boeing-defiant-helicopter/
+Try to find dates corresponding to Boeing volatility inflection points.<br/>
+A - Boeing debuts first 737 MAX 7<br/>
+B - Ryanair Announce order for 25 737 MAX 8s<br/>
+C - Boeing cancels a conference call with airlines to discuss systems on the 737 MAX model<br/>
+D - First look at Defiant helicopter; twice the speed and range of conventional helicopters<br/>
+
+https://boeing.mediaroom.com/2018-02-05-Boeing-Debuts-First-737-MAX-7<br/>
+https://boeing.mediaroom.com/2018-04-24-Boeing-Ryanair-Announce-Order-for-25-737-MAX-8s<br/>
+https://www.cnbc.com/2018/11/20/boeing-shares-fall-after-cancelling-conference-call-on-737-issues.html<br/>
+https://www.defensenews.com/land/2018/12/26/heres-the-first-look-at-the-sikorsky-boeing-defiant-helicopter/<br/>
 
 
 ```{r}
+spy_df <- data.frame(date=index(SPY), coredata(SPY)) %>% 
+  mutate(SPY.day_difference = SPY.High-SPY.Low) %>%
+  mutate(SPY.scale_max = SPY.Close/max(SPY.Close))
+
 #https://cran.r-project.org/web/packages/tidyquant/vignettes/TQ04-charting-with-tidyquant.html
 bband_n <- 20
-ba_df <- mutate(ba_df, BA.SMA = SMA(unlist(ba_df[,2]), n=bband_n)) %>% 
-  #mutate(below_SMA = BA.Close < BA.SMA)
-  mutate(below_SMA = ifelse(BA.Close < BA.SMA, 1000, 0))
+spy_df <- mutate(spy_df, SPY.SMA = SMA(unlist(spy_df[,2]), n=bband_n)) %>% 
+  #mutate(below_SMA = SPY.Close < SPY.SMA)
+  mutate(below_SMA = ifelse(SPY.Close < SPY.SMA, 1000, 0))
 
-pad_ba_df <- ba_df %>% pad
+pad_spy_df <- spy_df %>% pad
 keep_SMA <- 0
-for (row in 1:nrow(pad_ba_df)) {
-  SMA <- pad_ba_df[row, "below_SMA"]
+for (row in 1:nrow(pad_spy_df)) {
+  SMA <- pad_spy_df[row, "below_SMA"]
   if(!is.na(SMA)) {
     #print(paste("if",keep_SMA,sep=":"))
     keep_SMA <- SMA
   } else if(keep_SMA == 1000) {
     #print(paste("elseif",keep_SMA,sep=":"))
-    pad_ba_df[row, "below_SMA"] <- 1000
+    pad_spy_df[row, "below_SMA"] <- 1000
   }
 }
 
-ggplot(ba_df, aes(x = date, y = BA.Close, open = BA.Open, 
-                  high = BA.High, low = BA.Low, close = BA.Close))+
+
+ggplot(spy_df, aes(x = date, y = SPY.Close, open = SPY.Open, 
+                  high = SPY.High, low = SPY.Low, close = SPY.Close))+
   coord_cartesian(expand=FALSE, xlim=c(start, end), #+48, end-22),
-                  ylim=c(min(ba_df$BA.Close)-10, max(ba_df$BA.Close)+30))+
-  geom_bar(data=pad_ba_df, aes(y=below_SMA), color="#ffb3b3", stat="identity", width=1)+
+                  ylim=c(min(spy_df$SPY.Close)-10, max(spy_df$SPY.Close)+30))+
+  geom_bar(data=pad_spy_df, aes(y=below_SMA), color="#ffb3b3", stat="identity", width=1)+
   geom_line(color="#0039a6")+ #geom_candlestick()+
   geom_bbands(ma_fun = SMA, sd = 2, n = bband_n)+
-  labs(title = "BA Chart", 
+  labs(title = "SPY Chart", 
        subtitle = "BBands with SMA Applied", 
        y = "Closing Price", x = "date")+ 
   #theme_tq()
@@ -168,5 +178,49 @@ ggplot(ba_df, aes(x = date, y = BA.Close, open = BA.Open,
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 ```
 
+mean percent change 2.45153807239936
+median percent change 0.457267012114978
 
+```{r}
+box_df <- data.frame(matrix(ncol = 3, nrow = 0))
+x <- c("percent change", "day", "change per day") #, "middle day")
+colnames(box_df) <- x
+
+start <- ""
+minimum <- max(spy_df$SPY.Close, na.rm=TRUE)
+day_count <- 0
+for (row in 1:nrow(spy_df)) {
+  SMA <- spy_df[row, "SPY.Close"]
+  below <- spy_df[row, "below_SMA"]
+  if(!is.na(SMA) && !is.na(below) && below == 1000) {
+    day_count <- day_count+1
+    if(start == "") {
+      start <- SMA
+      #start_day <- spy_df[row, "date"]
+    }
+    if(minimum > SMA) {
+      minimum <- SMA
+    }
+  }
+  #message((is.na(below) || below != 1000), start != "")
+  if((is.na(below) || below != 1000) && start != "") {
+    #message(relative_loss, " ", day_count, " ", relative_loss/day_count)
+    relative_loss <- (start-minimum)/start*100
+    #message(start_day, " ", start_day+1, " ", start_day+(day_count/2))
+    box_df[nrow(box_df)+1, ] <- c(relative_loss, day_count, relative_loss/day_count) #, start_day+(day_count/2))
+    start <- ""
+    minimum <- max(spy_df$SPY.Close, na.rm=TRUE)
+    day_count <- 0
+  }
+}
+
+show(box_df)
+ggplot(box_df, aes(x="SPY", y=`change per day`)) + 
+  geom_boxplot() + 
+  geom_jitter(width = 0.1)
+
+message("mean percent change ", mean(box_df$`percent change`))
+message("median percent change ", median(box_df$`percent change`))
+box_df$`middle day` <- as.Date(box_df$`middle day`)
+```
 
