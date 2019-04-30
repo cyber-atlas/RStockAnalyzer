@@ -54,7 +54,16 @@ addBBands()
 
 ```
 
+
 ```{r}
+chartSeries(SPY, type='candlesticks')
+addBBands()
+```
+
+
+Ended up taking a different route here
+```{r}
+#TODO
 chartSeries(AMD, type='candlesticks')
 #Now let's add Bollinger Bands to it
 addBBands()
