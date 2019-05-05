@@ -1,0 +1,56 @@
+---
+title: "FinalReport"
+author: "cyber-atlas"
+date: "5/5/2019"
+output: html_document
+---
+
+
+Tell the story, not only the coding
+The total number of figures and tables should not exceed 10. Include only the most interesting results, and condense information in each figure.
+Each figure, table, or analysis must be accomanied by explanatory text.
+The project report should include a personal contribution section. Each teammate will write a paragraph about his/her own contribution to the team.
+An optional survey for comments on the contributions of your teammates will be sent out.
+
+
+Report is due on 12:00pm, May 6 sharp
+Each team should push to GitHub by the deadline, and the coordinator will email the instructor the link to their GitHub repo.
+If feasible, each team please also bring a color printed copy
+All sources need to be cited, which includes data source, blog posts, tutorials that include codes, etc. R help document does not need to be cited.
+
+
+# Stock Analysis With R 
+<br>
+###The Motivation
+<br>
+Nowadays it seems like there is a renewed attention in the stock market and investing in general. It seems like everyday you hear more and more about something a company did and how it will be the downfall of the company. The very next week, the same people that were predicting the downfall of the company, are talkng about how it's undervalued and its price is going to soar. Demonstrating to us that even the experts really don't know for sure.  
+
+The renewed interest in the market is even evident among millenials, as demonstrated by the explosion of mobile investing apps. There's a range of them that are made to appeal to people with a wide variety of financial knowledge/experience. 
+
+Robinhood is by far the most popular app as it offers free stock and options trading. However, Robinhood does not come with the advanced news and charting features that paid competitiors such as Think or Swim come with.
+
+Betterment is also another popular investment app. It takes a fee, but generally it is much smaller than what a traditional broker would charge. Betterment does not allow users to purchase individual stocks. Instead, the user contributes money to the app, and an algorithm allocates the money into mutual funds taking into account the amount of risk the user says they're willing to take. 
+
+Consequently that led us to explore the following questions:
+ 
+* Do the news stories about companies actually affect the price of a stock? Knowing this could help one make the decision whether or not to listen to the news, and whether or not they should use a tool that gives them more insght on the news surrounding a stock than Robinhod. 
+ 
+* Does the value of a commodity affect the price of stocks in a similar market space? Knowing this could help a user make the decision whether or not to use Robinhood, or an app that allows for more streamlined comparisons of stocks. 
+
+* Do popular technical indicators actually work? Knowing this could help one make the decision on whether or not they want to use Robinhood or an app that allows them to use to technical indicators to help predict value.
+
+* How does company performance compare to their Stock Price? This cwould be interesting to see to determine how much weight to put on the news about them, and in determining the feasability of using an algorithm to manage your money. 
+
+* Can we predict the price of a stock on a future date? There are strong arguments on both sides of this question, so we decided to test it for ourselves and draw our own conclusions. 
+
+###The Datasets 
+<br>
+The datasets we used in this investigation were obtained from Yahoo Finance using the quantmod package and from the _____________________ Kaggle dataset. The link to the datasets are below. 
+
+[Yahoo Finance](https://finance.yahoo.com/)
+
+[]
+
+#TODO Add the kaggle dataset name and link above 
+<br>
+#TODO Add the quantmod CRAN info
