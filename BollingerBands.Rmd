@@ -1,0 +1,125 @@
+---
+title: "BollingerBands"
+author: "cyber-atlas"
+date: "April 23, 2019"
+output: html_document
+---
+ 
+```{r}
+# install.packages("quantmod")
+library('quantmod')
+library('ggplot2')
+# install.packages("magrittr")
+library('magrittr')
+# install.packages("tidyquant")
+library('tidyquant')
+```
+
+Getting the data
+
+```{r}
+#Define start and End dates
+start <- as.Date("2018-11-01")
+end <- as.Date("2019-04-26")
+getSymbols(c("AAPL", "AMD", "SPY", "MU"), src="yahoo", from = start, to = end)
+
+```
+
+Bollinger bands are fundamentally based on the simple moving average, so lets get that
+
+```{r}
+#Charts the prices of the SPY 500
+candleChart(SPY, up.col="green", dn.col="red", theme="white")
+#Adds the simple moving average
+plot(addSMA(n = 20))
+
+#Extract taht data
+#use function lines t
+```
+
+```{r}
+
+candleChart(SPY, up.col="green", dn.col="red", theme="white")
+addMACD()
+```
+
+
+```{r}
+
+candleChart(SPY, up.col="green", dn.col="red", theme="white")
+#Adds Bollinger Bands
+addBBands()
+
+
+
+```
+
+
+```{r}
+chartSeries(SPY, type='candlesticks') 
+addBBands(n=20)
+```
+
+
+Ended up taking a different route here
+```{r}
+#TODO
+chartSeries(AMD, type='candlesticks')
+#Now let's add Bollinger Bands to it
+addBBands()
+#Can merge data 
+head(as.xts(merge(AMD, AAPL)))
+```
+
+
+We want to see if tidyquant will be a cleaner way of doing things
+
+```{r}
+#Trying a differnt (cleaner way to get the data)
+SPY2 <- tq_get("SPY")
+
+# SPY2 %>%
+#     tq_mutate(x_fun = Cl, mutate_fun = SMA, n = 20) %>%
+#     rename(SMA.20 = SMA)
+
+# Had a bunch of issues with the mutate functions that were provided by the library
+# unzip(A)
+SPY2 %<>%
+    mutate(SMA.close = SMA(unlist(SPY2[,2]), n=20)) 
+
+head(SPY2,30)
+
+
+
+
+```
+
+
+
+Sources:
+
+Went through a lot of the quantmod documentation to find this info paired with the financial analysis I have been trying to teach myself. 
+
+https://cran.r-project.org/web/packages/quantmod/index.html )
+
+ mutate_fun = SMA, n = 15) %>%
+
+# 
+# # SMA
+# AAPL %>%
+#     ggplot(aes(x = date, y = close)) +
+#     geom_line() +           # Plot stock price
+#     # geom_bbands(aes(high = high, low = low, close = close), ma_fun = SMA, n = 50) +
+#     coord_x_date(xlim = c(today() - years(1), today()), ylim = c(80, 130))
+# 
+
+
+
+Could use 
+https://www.r-bloggers.com/stock-analysis-using-r/
+
+Sources:
+
+Went through a lot of the quantmod documentation to find this info paired with the financial analysis I have been trying to teach myself. 
+
+https://cran.r-project.org/web/packages/quantmod/index.html 
