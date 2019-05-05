@@ -41,7 +41,7 @@ AMD2 <- getSymbols("AMD", src = "yahoo", from = "2017-01-01", to = "2019-04-20",
 getSymbols(c("AAPL", "AMD", "SPY", "MU", "NVDA"), src="yahoo", from = start, to = end)
 ```
 
-Im' going to compare two companies, Nvidia and AMD. These two companies are the two top dogs in the GPU manufacturing market. 
+I'm going to compare two companies, Nvidia and AMD. These two companies are two of the top compeitors in the GPU manufacturing market. Behind Intel, these two are the closest in competition here. We're going to look at the stock prices to see what kind of effect the cryptocurrency boom had on the two companies, and why. More specifically , we'll look at the stock prices from July 2018 to January 2019. 
 Here is a candlestick for Nvidia, and one for AMD.
 
 ```{r nvidia}
@@ -79,6 +79,7 @@ As you can see here, both companies experienced a rather steep rise in their sto
 Let's compare this to the rise of another important stock, Bitcoin.
 ```{r bitcoin}
 getSymbols("BTC-USD", src="yahoo", from = start, to = end)
+str(`BTC-USD`)
 lineChart(`BTC-USD`, theme = "white.mono")
 #addTA(OpCl(`BTC-USD`),col='blue', type='h') 
 ```
@@ -119,9 +120,11 @@ candleChart(AMD, theme = "white", TA = NULL)
 
 stocks <- as.xts(data.frame(nv = NVDA$"NVDA.Close", amd = AMD$"AMD.Close"))
 
-plot(as.zoo(stocks$"NVDA.Close"),screens = 1,lty = 1,main="Closing Prices of Nvidia, AMD", col = "red" ,xlab = "Date, July 2018 - January 2019",ylab = "Close Price, USD")
+plot(as.zoo(stocks$"NVDA.Close"),screens = 1,lty = 1,main="Closing Prices of Nvidia, AMD", col = "red" ,xlab = "Date, July 2018 - January 2019",ylab = "Close Price, USD") 
+#  geom_vline(xintercept = as.Date("2018-09-01"), size=0.5, linetype="dotted")
 par(new = TRUE)
 plot(as.zoo(stocks$"AMD.Close"),screens = 1,lty = 2,col = "blue" ,xlab = "",ylab = "", xaxt = "n", yaxt = "n")
+abline(v = as.Date("2018-09-01"), lty = 2)
 axis(4)
 mtext("Price", side = 4, line = 3)
 legend("topleft",c("Nvidia(left)","AMD(right)"),lty = c(1,2),cex = 0.5)
