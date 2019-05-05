@@ -20,6 +20,8 @@ Let's look at how the S&P500 has been doing over the past year
 ```{r}
 getSymbols("SPY", src="yahoo", from="2019-01-01")
 getSymbols("AAPL", src="yahoo", from="2019-01-01")
+
+AMD
 ```
 
 Let's visualize the chart
@@ -101,7 +103,11 @@ fit.forecast
 
 ```{r}
 
-plot(fit.forecast)
+plot(fit.forecast, ylab="Price", xlab="Trading Day in 2019. 4/26 was the 80th Day")
+# Now, define a custom axis
+
+# text(wt, mpg, row.names(mtcars), cex=0.6, pos=4, col="red") 
+
 ```
 
 Source
