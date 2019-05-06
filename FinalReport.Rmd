@@ -45,13 +45,13 @@ Consequently that led us to explore the following questions:
 
 ### The Datasets 
 <br>
-The datasets we used in this investigation were obtained from Yahoo Finance using the quantmod package and from the _____________________ Kaggle dataset. The link to the datasets are below. 
+The datasets we used in this investigation were obtained from Yahoo Finance using the quantmod package and from a New York Stock Exchange Kaggle dataset. The link to the datasets are below. 
 
 [Yahoo Finance](https://finance.yahoo.com/)
 
 [Quantmod Information](https://cran.r-project.org/web/packages/quantmod/index.html)
 
-## TODO Add the kaggle dataset name and link above 
+[Kaggle Dataset](https://www.kaggle.com/dgawlik/nyse/version/3#)
 
 ### **The Analysis**
 
@@ -134,89 +134,8 @@ I used the LEAPS package and forward subset selection to determine which 5 varia
 4) General and Admin Sales
 5) Net Income
 
-```{r setup 2, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(quantmod)
-library(tidyverse)
-library(lubridate)
-library(leaps)
-library(purrr)
-library(ggrepel)
-fundamentals <- read.csv(file.choose())
-#You have to choose the fundamentals.csv file manually, I couldn't get it to choose the file automatically
-```
-
-```{r}
-fundamentals$Period.Ending <- as.Date(fundamentals$Period.Ending)
-data <- fundamentals %>%
-  group_by(Ticker.Symbol) %>%
-  mutate(start = (min(Period.Ending) - as.period('7d'))) %>%
-  mutate(end = (max(Period.Ending) + as.period('1y')))
-Changes <- function(symbol) {
-  sym <- data %>% filter(Ticker.Symbol == symbol)
-  chng <- as.data.frame(getSymbols(symbol, src = 'yahoo', from = sym[[1, 'start']], to = sym[[1, 'end']], auto.assign = FALSE))
-  chng <- chng %>% mutate(date = as.Date(row.names(chng)))
-  names(chng) <- c('Open', 'High', 'Low', 'Close', 'Volume', 'Adjusted', 'Period.Ending')
-  day <- weekdays(sym[[1, 'Period.Ending']])
-  if (day == 'Saturday') {
-    Offset = '1d'
-  } else if (day == 'Sunday') {
-    Offset = '2d'
-  } else {
-    Offset = '0d'
-  }
-  sym$Period.Ending <- sym$Period.Ending - as.period(Offset)
-  sym$Year.Ending <- sym$Period.Ending + as.period('364d')
-  sym$Quarter.Ending <- sym$Period.Ending + as.period('84d')
-  sym$Month.Ending <- sym$Period.Ending + as.period('28d')
-  sym$Week.Ending <- sym$Period.Ending + as.period('7d')
-  chng$Year.Ending <- chng$Period.Ending
-  chng$Quarter.Ending <- chng$Period.Ending
-  chng$Month.Ending <- chng$Period.Ending
-  chng$Week.Ending <- chng$Period.Ending
-  base <- semi_join(chng, sym, by = 'Period.Ending')
-  dyr <- semi_join(chng, sym, by = 'Year.Ending')
-  dqr <- semi_join(chng, sym, by = 'Quarter.Ending')
-  dmo <- semi_join(chng, sym, by = 'Month.Ending')
-  dwk <- semi_join(chng, sym, by = 'Week.Ending')
-  sym$dyr <- (dyr$High - base$High) / base$High
-  sym$dqr <- (dqr$High - base$High) / base$High
-  sym$dmo <- (dmo$High - base$High)
-  sym$dwk <- (dwk$High - base$High)
-  sym
-}
-Try_Changes <- function(symbol) {
-  tryCatch(Changes(symbol), error = function(e) e, warning = function(w) w)
-}
-data2 <- distinct(data[, 'Ticker.Symbol'])
-data2$Ticker.Symbol <- as.character(data2$Ticker.Symbol)
-result <- data.frame(Ticker.Symbol = character(), Result = logical(), stringsAsFactors = FALSE)
-fin <- Changes(as.character(data2[[1, 'Ticker.Symbol']]))
-for(i in 1:(nrow(data2))) {
-  result[[i, 'Ticker.Symbol']] <- data2[[(i), 'Ticker.Symbol']]
-  attempt <- Try_Changes(data2[[(i), 'Ticker.Symbol']])
-  if(is(attempt, 'warning')) {
-    result[[i, 'Result']] <- FALSE
-  } else if(is(attempt, 'error')) {
-    result[[i, 'Result']] <- FALSE
-  } else {
-    result[[i, 'Result']] <- TRUE
-    sym <- Changes(as.character(data2[[(i), 'Ticker.Symbol']]))
-    fin <- bind_rows(fin, sym)
-  }
-}
-fin1 <- fin %>% filter(For.Year > 2010) %>% filter(For.Year != 2016)
-lin.cmb <- (-1.244*10^(-12))*fin1$Fixed.Assets + (5.629*10^(-11))*fin1$Changes.in.Inventories + (1.609*10^(-10))*fin1$Effect.of.Exchange.Rate + (3.823*10^(-12))*fin1$Sales..General.and.Admin. + (-4.787*10^(-12))*fin1$Net.Income
-fin1 %>%
-  ggplot(aes(x = lin.cmb, y = dyr, label = Ticker.Symbol)) +
-  geom_hline(yintercept = 0, color = 'gray') +
-  geom_point() +
-  geom_text(aes(label = ifelse(lin.cmb == 0, as.character(Ticker.Symbol), ''), vjust = 0.2)) +
-  labs(title = 'Performance Index vs Stock Price', x = 'Performance Index', y = 'Change in Stock Price (1 Year)') +
-  facet_wrap(~For.Year) +
-  geom_point(aes(color = Ticker.Symbol), size = 2) +
-  scale_color_manual(values = c('blue', 'red', 'green', 'purple', 'orange'), limits = c('OKE', 'JPM', 'VIAB', 'SWN', 'MU'), name = 'Company', labels = c('Oneok Natural Gas', 'JPMorgan Chase', 'Viacom', 'Southwestern Energy', 'Micron Technology'))
-```
+##### Plots of Performance Index vs Stock Price
+![](performance.png)
 
 I created a new variable which is a linear combination of the five most important variables above, and called it the 'Performance Index'. I then plotted the Performance Index against the change in stock price over the next year. It looks a bit messy at first, but I think there is quite a bit of useful information we can get from these graphs. 
 
@@ -290,9 +209,16 @@ Our research was mainly to satisfy curiosity. We wanted to explore what merits t
 ### Our Sources
 
 https://cointelegraph.com/news/following-crypto-mining-crash-gpu-producer-nvidia-worst-performer-in-sp-500
+
 http://rstudio-pubs-static.s3.amazonaws.com/265813_dab79c8eb62d41e381a7e230465573ab.html
 
 http://rstudio-pubs-static.s3.amazonaws.com/265813_dab79c8eb62d41e381a7e230465573ab.html
+
+https://www.fool.com/investing/general/2014/01/13/how-micron-technology-plans-to-improve-top-line.aspx
+
+https://dealbook.nytimes.com/2014/03/19/jpmorgan-to-sell-commodities-unit-for-3-5-billion/
+
+https://stateimpact.npr.org/pennsylvania/2018/06/11/court-rejects-fracking-companys-appeal-in-rule-of-capture-decision/ 
 
 Data Science Cookbook By YuWei Chiu
 
@@ -305,9 +231,7 @@ I worked on the Bollinger Bands and Stock Prediction portions of the project. I 
 
 ## TODO Blake add reflection
 
-## TODO Sam add reflection
-
-### Sam
+#### Sam
 
 I contributed by analyzing the connection between company performance and change in stock price. I'm typically not a great public speaker, so I relied on my teammates to do well in the presentation. Because of this, I wanted my analysis to be very interesting. I decided to go with the correlation between company performance and stock price because it's a simple concept that most people can understand, but it's still a complex topic that has many avenues for analysis. 
 
