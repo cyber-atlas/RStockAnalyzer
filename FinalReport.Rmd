@@ -55,7 +55,126 @@ The datasets we used in this investigation were obtained from Yahoo Finance usin
 
 ### **The Analysis**
 
-## TODO Add the airplane stuff talking about news
+## Stock price reaction to publicized events in the aviation industry.
+
+```{r}
+library("dplyr")
+library("tidyr")
+library("tidyverse")
+library("ggplot2")
+library("readxl")
+library("ggrepel")
+library("RColorBrewer")
+library("padr")
+
+#install.packages("tseries")
+#https://cran.r-project.org/src/contrib/Archive/forecast/
+#install.packages("uroot")
+#install.packages("nnet")
+#install.packages("~/Downloads/forecast_8.4.tar", repos = NULL)
+#https://cran.r-project.org/src/contrib/Archive/quadprog/
+#install.packages("~/Downloads/quadprog_1.5-5.tar", repos = NULL)
+#install.packages("tidyquant")
+library("tidyquant")
+#install.packages("quantmod")
+library("quantmod")
+#install.packages("magrittr")
+library('magrittr')
+```
+
+```{r}
+#Define start and End dates
+start <- as.Date("2018-01-01")
+end <- as.Date("2019-04-01")
+```
+
+```{r}
+?getSymbols
+getSymbols(c("BA", "EADSF", "SPY"), src="yahoo", from = start, to = end)
+```
+
+```{r}
+#https://www.axios.com/boeing-737-max-crash-what-know-a5087b8e-1787-4de5-bece-d1350d5695cf.html
+#On 29 October 2018, the Boeing 737 MAX 8 operating the route crashed into the Java Sea 12 minutes after takeoff, killing all 189 passengers and crew.
+#On 10 March 2019, the Boeing 737 MAX 8 aircraft which operated the flight crashed near the town of Bishoftu six minutes after takeoff, killing all 157 people aboard.
+
+#https://stackoverflow.com/questions/3386850/how-can-i-change-xts-to-data-frame-and-keep-index
+ba_df <- data.frame(date=index(BA), coredata(BA)) %>% 
+  mutate(BA.day_difference = (BA.High-BA.Low)/max(BA.Close)) %>%
+  mutate(BA.scale_max = BA.Close/max(BA.Close)) %>%
+  mutate(origin = "Boeing")
+eadsf_df <- data.frame(date=index(EADSF), coredata(EADSF)) %>% 
+  mutate(EADSF.day_difference = (EADSF.High-EADSF.Low)/max(EADSF.Close)) %>%
+  mutate(EADSF.scale_max = EADSF.Close/max(EADSF.Close)) %>%
+  mutate(origin = "Airbus")
+colnames(ba_df) <- c("date", "Open", "High", "Low", "Close", "Volume", "Adjusted", 
+                     "scale_diff", "scale_close", "origin")
+colnames(eadsf_df) <-  c("date", "Open", "High", "Low", "Close", "Volume", "Adjusted", 
+                     "scale_diff", "scale_close", "origin")
+airplane_df <- rbind(ba_df, eadsf_df)
+
+ggplot(airplane_df, aes(x=date, y=scale_close, color=origin))+
+  coord_cartesian(xlim=c(start+20, end-20), ylim=c(0.66, 1))+
+  geom_line()+
+  scale_color_manual(values=c(Boeing="#0039a6", Airbus="#74d2e7"))+
+  scale_x_date(date_labels = "%b %y", date_breaks = "1 month")+
+  labs(title = "Stock Price Comparison of Boeing and Airbus",
+       subtitle = "Adjusted for maximum relative price",
+       y="proportional closing value",
+       color="")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=1),
+        legend.position = c(0.885, 1.08),
+        legend.direction="horizontal")+
+  geom_vline(xintercept = as.Date("2018-10-29"), size=0.5, linetype="dotted")+
+  geom_vline(xintercept = as.Date("2019-03-10"), size=0.5, linetype="dotted")+
+  annotate("text", x=as.Date("2018-10-29"), 
+           y=0.65, label="Lion Air 737 Max 8", angle=90, vjust=-0.5, hjust=0, size=3)+
+  annotate("text", x=as.Date("2019-03-10"), 
+           y=0.65, label="Ethiopian Airlines 737 Max 8", angle=90, vjust=-0.5, hjust=0, size=3)
+
+ggplot(airplane_df, aes(x=date, y=scale_diff, color=origin))+
+  coord_cartesian(xlim=c(start+20, end-20), ylim=c(0, 0.085))+
+  geom_line()+
+  scale_color_manual(values=c(Boeing="#0039a6", Airbus="#74d2e7"))+
+  scale_x_date(date_labels = "%b %y", date_breaks = "1 month")+
+  labs(title = "Stock Price Volatility of Boeing and Airbus",
+       subtitle = "Adjusted for maximum relative price",
+       y="proportional daily volatility",
+       color="")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=1),
+        legend.position = c(0.885, 1.08),
+        legend.direction="horizontal")+
+  geom_vline(xintercept = as.Date("2018-10-29"), size=0.5, linetype="dotted")+
+  geom_vline(xintercept = as.Date("2019-03-10"), size=0.5, linetype="dotted")+
+  #MAX 8 crash dates
+  annotate("text", x=as.Date("2018-10-29"), 
+           y=0.0875, label="Lion Air 737 Max 8", angle=90, vjust=-0.5, hjust=1, size=3)+
+  annotate("text", x=as.Date("2019-03-10"), 
+           y=0.0875, label="Ethiopian Airlines 737 Max 8", angle=90, vjust=-0.5, hjust=1, size=3)+
+  #trade volatility inflection points of interest
+  annotate("text", x=as.Date("2018-02-05"), 
+           y=ba_df[ba_df$date == as.Date("2018-02-05"), 8], label="A", vjust=-0.5, hjust=0.5, size=3)+
+  annotate("text", x=as.Date("2018-04-24"), 
+           y=ba_df[ba_df$date == as.Date("2018-04-24"), 8], label="B", vjust=-0.5, hjust=0.5, size=3)+
+  annotate("text", x=as.Date("2018-11-20"), 
+           y=ba_df[ba_df$date == as.Date("2018-11-20"), 8], label="C", vjust=-0.5, hjust=0.5, size=3)+
+  annotate("text", x=as.Date("2018-12-26"), 
+           y=ba_df[ba_df$date == as.Date("2018-12-26"), 8], label="D", vjust=-0.5, hjust=0.5, size=3)
+```
+
+The impact of real-life events on the stock market was investigated using the recent Boeing controversy involving two plane crashes as focus points. The investegation involved Boeing as the primary publicized target and Airbus, a related stock that is Beoing's primary competitor in the aviation industry. Two plots were created, each with the same x-axis date range. Vertical lines were used to designate the precise day on which the two plane crashes occurred. Percent change is an ideal metric of measuring stock value trends. Both graphs were scaled proportionally to maximum observed corresponding stock value. The maximum value of Boeing stock ($446) was nearly four times greater than Airbus stock max ($136).
+
+Observing the Stock Price Comparision plot, a trend is not immediately clear following the first crash of Lion Air 737 Max 8 on Oct. 29, 2018. It appears the market as a whole was in a depreciatory state. Both Boeing and Airbus lost comparable stock value for several months before the trend reversed. It wasn't until the second crash of Ethiopian Airlines 737 Max 8 on Mar. 10 2019 that there was a substantial reaction in the stock market corresponding. Shortly after the crash, corresponding to the time at which Boeing divulged a software failure responsible for both crashes, Boeing stock dropped by nearly 18%. In comparison, Airbus stock experienced a sudden positive spike on the same day.
+
+To provide additional evidence that the observed stock trends were directly related to real-life events, a Stock Price Volatility plot was created. Volatilty indicates the difference between the maximum and minimum stock values on any given day, scaled proportionally to the maximum observed corresponding stock value in the date range. Sharp inflection points indicate days at which stock price grew or fell quickly. The plot isn't able to differentiate positive and negative growth. Airbus stock price was stable relative to Boeing. Airbus is a European company traded predominantly overseas. On the New York Stock Exchange, the stock volume of Airbus relative to Beoing is nearly 1000 times less. For this reason, Airbus stock volatility not considered. 
+
+It is clear that the greatest inflection points match the dates of the two plane crashes. Several additional inflection points were selected for reference, labeled "A-D". Point A was the day on which Boeing deputed its 737 Max 7. Ryanair ordered 25 737 MAX 8s from Boeing at point B. Point C related to the first plane crash; Boeing canceled a conference call with airlines to discuss systems on the 737 Max model. The last point, D, was the day Boeing introduced the Defiant helicopter, which has twice the speed and range of conventional helicopters. Admittedly, these events were selected for on the basis of a given date. They represent the most significant, Boeing-related events on days of notable stock price volatility. Each point appears substantial enough to motivate a response from investors. It is reasonable to conclude that stock price values are tied directly to publicized events.
 
 ### Comparing AMD and Nvidia With the Rise and Fall of Bitcoin
 
@@ -104,7 +223,51 @@ A popular strategy is to sell or enter a position that profits from a stock decr
 
 To test this we decided to use the following code to highlight everytime the stock dips below the moving average. To give us a conceptual visual understanding of what we are looking at. 
 
-## TODO get the chart with the highlights added here 
+## Added the chart with highlights 
+
+```{r}
+spy_df <- data.frame(date=index(SPY), coredata(SPY)) %>% 
+  mutate(SPY.day_difference = SPY.High-SPY.Low) %>%
+  mutate(SPY.scale_max = SPY.Close/max(SPY.Close))
+
+#https://cran.r-project.org/web/packages/tidyquant/vignettes/TQ04-charting-with-tidyquant.html
+bband_n <- 20
+spy_df <- mutate(spy_df, SPY.SMA = SMA(unlist(spy_df[,2]), n=bband_n)) %>% 
+  #mutate(below_SMA = SPY.Close < SPY.SMA)
+  mutate(below_SMA = ifelse(SPY.Close < SPY.SMA, 1000, 0))
+
+pad_spy_df <- spy_df %>% pad
+keep_SMA <- 0
+for (row in 1:nrow(pad_spy_df)) {
+  SMA <- pad_spy_df[row, "below_SMA"]
+  if(!is.na(SMA)) {
+    #print(paste("if",keep_SMA,sep=":"))
+    keep_SMA <- SMA
+  } else if(keep_SMA == 1000) {
+    #print(paste("elseif",keep_SMA,sep=":"))
+    pad_spy_df[row, "below_SMA"] <- 1000
+  }
+}
+
+
+ggplot(spy_df, aes(x = date, y = SPY.Close, open = SPY.Open, 
+                  high = SPY.High, low = SPY.Low, close = SPY.Close))+
+  coord_cartesian(expand=FALSE, xlim=c(start, end), #+48, end-22),
+                  ylim=c(min(spy_df$SPY.Close)-10, max(spy_df$SPY.Close)+30))+
+  geom_bar(data=pad_spy_df, aes(y=below_SMA), color="#ffb3b3", stat="identity", width=1)+
+  geom_line(color="#0039a6")+ #geom_candlestick()+
+  geom_bbands(ma_fun = SMA, sd = 2, n = bband_n)+
+  labs(title = "SPY Chart", 
+       subtitle = "BBands with SMA Applied", 
+       y = "Closing Price", x = "date")+ 
+  #theme_tq()
+  scale_x_date(date_labels = "%b %y", date_breaks = "1 month")+
+  ylab("closing value")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
+```
 
 We see here that often when the stock dips, that it rebound within a day or so. This is a bit misleading because we are looking at the stocks on a day by day timeframe. However, the market reacts much faster and even the times that it dips and rebounds, traders can make money. 
 
@@ -182,13 +345,21 @@ Our research was mainly to satisfy curiosity. We wanted to explore what merits t
 
 ### Our Sources
 
+https://boeing.mediaroom.com/2018-02-05-Boeing-Debuts-First-737-MAX-7
+
+https://boeing.mediaroom.com/2018-04-24-Boeing-Ryanair-Announce-Order-for-25-737-MAX-8s
+
+https://www.cnbc.com/2018/11/20/boeing-shares-fall-after-cancelling-conference-call-on-737-issues.html
+
+https://www.defensenews.com/land/2018/12/26/heres-the-first-look-at-the-sikorsky-boeing-defiant-helicopter/
+
 https://cointelegraph.com/news/following-crypto-mining-crash-gpu-producer-nvidia-worst-performer-in-sp-500
+
 http://rstudio-pubs-static.s3.amazonaws.com/265813_dab79c8eb62d41e381a7e230465573ab.html
 
 http://rstudio-pubs-static.s3.amazonaws.com/265813_dab79c8eb62d41e381a7e230465573ab.html
 
 Data Science Cookbook By YuWei Chiu
-
 
 ### Reflections
 
@@ -196,7 +367,9 @@ Data Science Cookbook By YuWei Chiu
 
 I worked on the Bollinger Bands and Stock Prediction portions of the project. I also found the dataset and was the one who spoke with Dr Dai about getting the project approved. I coordinated our team meetings and efforts as well. I wanted to go more in depth with the analysis, but given that we had homeworks and labs up until the presentation was not able to. I also wanted to go more in depth in the presentation, as not everyone has the same financial background. However, I was not able to due to the time constraint. 
 
-## TODO Blake add reflection
+## Blake
+
+I compared significant publicized events directly related to the aviation industry to Boeing and Airbus stock prices. My contribution included all related plots and the written interpretation of the plots. I also created the SPY plot demonstrating Bollinger Bands and Simple Moving Average.
 
 ## TODO Sam add reflection
 
