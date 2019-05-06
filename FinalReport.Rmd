@@ -5,9 +5,9 @@ date: "5/5/2019"
 output: html_document
 ---
 
-# Stock Analysis With R 
+# **Stock Analysis With R** 
 
-### The Motivation
+### **The Motivation**
 
 Nowadays it seems like there is a renewed attention in the stock market and investing in general. It seems like everyday you hear more and more about something a company did and how it will be the downfall of the company. The very next week, the same people that were predicting the downfall of the company, are talkng about how it's undervalued and its price is going to soar. Demonstrating to us that even the experts really don't know for sure.  
 
@@ -143,7 +143,7 @@ Observing the Stock Price Comparision plot, a trend is not immediately clear fol
 
 To provide additional evidence that the observed stock trends were directly related to real-life events, a Stock Price Volatility plot was created. Volatilty indicates the difference between the maximum and minimum stock values on any given day, scaled proportionally to the maximum observed corresponding stock value in the date range. Sharp inflection points indicate days at which stock price grew or fell quickly. The plot isn't able to differentiate positive and negative growth. Airbus stock price was stable relative to Boeing. Airbus is a European company traded predominantly overseas. On the New York Stock Exchange, the stock volume of Airbus relative to Beoing is nearly 1000 times less. For this reason, Airbus stock volatility not considered. 
 
-It is clear that the greatest inflection points match the dates of the two plane crashes. Several additional inflection points were selected for reference, labeled "A-D". Point A was the day on which Boeing deputed its 737 Max 7. Ryanair ordered 25 737 MAX 8s from Boeing at point B. Point C related to the first plane crash; Boeing canceled a conference call with airlines to discuss systems on the 737 Max model. The last point, D, was the day Boeing introduced the Defiant helicopter, which has twice the speed and range of conventional helicopters. Admittedly, these events were selected for on the basis of a given date. They represent the most significant, Boeing-related events on days of notable stock price volatility. Each point appears substantial enough to motivate a response from investors. It is reasonable to conclude that stock price values are tied directly to publicized events.
+It is clear that the greatest inflection points match the dates of the two plane crashes. Several additional inflection points were selected for reference, labeled "A-D". Point A was the day on which Boeing deputed its 737 Max 7. Ryanair ordered 25 737 MAX 8s from Boeing at point B. Point C related to the first plane crash; Boeing canceled a conference call with airlines to discuss systems on the 737 Max model. The last point, D, was the day Boeing introduced the Defiant helicopter, which has twice the speed and range of conventional helicopters. Admittedly, these events were selected for on the basis of a given date. They represent the most significant, Boeing-related events on days of notable stock price volatility. Each point appears substantial enough to motivate a response from investors. It is reasonable to conclude that stock price values are tied directly to publicized events. Therefore having access to more news sources could be beneficial when following a stock.
 
 ### Comparing AMD and Nvidia With the Rise and Fall of Bitcoin
 
@@ -180,7 +180,7 @@ mtext("Price", side = 4, line = 3)
 legend("topleft",c("Nvidia(left)","AMD(right)"),lty = c(1,2),cex = 0.5)
 ```
 
-This graph shows the stock prices for Nvidia and AMD from July, 2018 to January, 2019. We can see the fluctuation in the stock prices for both companies here. Since the share price for Nvidia is much higher than that of AMD, each line is scaled individually on the graph. From here, we can clearly see the correlation between the decline in cryptocurrency mining and the drop in the stock prices. 
+This graph shows the stock prices for Nvidia and AMD from July, 2018 to January, 2019. We can see the fluctuation in the stock prices for both companies here. Since the share price for Nvidia is much higher than that of AMD, each line is scaled individually on the graph. From here, we can clearly see the correlation between the decline in cryptocurrency mining and the drop in the stock prices. So it is reasonable to assume that it is useful to have a platform that allows for side by side comparisons of equities.  
 
 ### Testing the Effectiveness of Bollinger Bands
 
@@ -189,6 +189,8 @@ Given that Robinhood does not have technical indicators, I wanted to test the ef
 Bollinger Bands work based on the moving average, meaning that the oldest value is dropped when a new one is added. The top band is 1 standard deviation above the moving average, the middle band is the moiving average, and the bottom band is 1 standard deviation below the moving average. 
 
 A popular strategy is to sell or enter a position that profits from a stock decreasing when the price goes down hitting the moving average. 
+
+We decided to look at SPY which is an ETF representation of the S&P 500. this allows us to generalize if it works for stocks that make up what is essentially the overall market. 
 
 To test this we decided to use the following code to highlight everytime the stock dips below the moving average. To give us a conceptual visual understanding of what we are looking at. 
 
@@ -267,7 +269,7 @@ First, notice that there are many companies grouped around the center of the x-a
 
 Also note that the companies with exceptionally high or low performance indexes tend to not vary as much in stock price. This makes sense, because a large company with an expensive stock won't be likely to double in price or drop by a large percentage. 
 
-I also spent some time looking at the outliers to see if I could pinpoint a specific reason for the change in stock price or performance index. I highlighted some noteable companies and explored this question in the presentation.
+I also spent some time looking at the outliers to see if I could pinpoint a specific reason for the change in stock price or performance index. I highlighted some noteable companies and explored this question in the presentation. It is safe to say that having access to more in depth company data is useful when deciding whether to invest. Consequently, having the information on your trading platform would be a big advantage. 
 
 ### Predicting A Future Stock Price
 
@@ -325,12 +327,12 @@ The actual closing value of the stock was $293.87. As you can see, our predictio
 
 With the success of our model, I would say that it is worth looking more into the effectiveness of algorithmic trading, perhaps with more stocks. We have seen that the algorithms can be effective, and if used on a larger scale, could be profitable. 
 
-### Our Conclusion
+### **Our Conclusion**
 
 Our research was mainly to satisfy curiosity. We wanted to explore what merits there might be to taking different approaches when going about the stock market. We advise the reader to take our analysis and exploration as a starting point to make their own decisions. The stock market is very complex and there is a reason why so many people have lost a lot of money in it. Any one who tells you that they have it figured it out, is lying. Even Warren Buffet lost $4 billion in a matter of hours earlier this year. There are a lot more questions that can be answered, and we hope this provides an idea of how to go about satisfying your curiosity. 
 
 
-### Our Sources
+### **Our Sources**
 
 https://boeing.mediaroom.com/2018-02-05-Boeing-Debuts-First-737-MAX-7
 
@@ -354,9 +356,11 @@ https://stateimpact.npr.org/pennsylvania/2018/06/11/court-rejects-fracking-compa
 
 https://cran.r-project.org/web/packages/tidyquant/vignettes/TQ04-charting-with-tidyquant.html
 
+https://cran.r-project.org/web/packages/quantmod/index.html 
+
 Data Science Cookbook By YuWei Chiu
 
-### Reflections
+### **Reflections**
 
 #### Alex
 
