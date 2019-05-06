@@ -67,11 +67,11 @@ At the beginning, this increase in sales led to a spike in the stock prices of b
 
 The end of summer 2018 saw a massive decrease in the demand for new GPUs from coin miners. The cost of coninuously mining cyrptocureency had overcome the profit turned from the mining, and many left the scene. The problem for Nivdia and Amd here was that the prices of the GPUs on the market could not correct themselves fast enough to keep up with the decrease in sales. As a result, no one could or would buy their products. This led to the stock price for each company to plummet. From September to November, shares fell for both companies. Nvidia managed to los 54% of their stock value in Q4 of 2018 alone. 
 
- ```{r setup, message=FALSE, warning=FALSE}
+```{r setup, message=FALSE, warning=FALSE}
 library(quantmod)
 library(ggplot2)
 library(plotly)
-library('forecast')
+library(forecast)
 ```
 
 ```{r NVDA AMD, message=FALSE, warning=FALSE}
@@ -118,6 +118,113 @@ Paired with the fact that traders can make moeny on the dips that have a good re
 
 
 ## TODO Add the stuff about comparing company performance vs stock price
+
+### Comparing Company Performance to Changes in Stock Price
+
+I imported a dataset from [Kaggle](https://www.kaggle.com/dgawlik/nyse/version/3#) that shows details about companies listed on the NYSE. I wanted to use this data set to find a correlation between the information from the data set and the change in price of a company's stock. I spent some time cleaning the data set and changing some strings to dates. I also added a row with the date each measurement was taken, since that information was originally in the index. I also added a new row that gave the date 1 year after the measurement was taken. I did this so I could easily access it later when telling the quantmod package what period to get information from. 
+
+I created a function that takes an input of a stock symbol and returns the associated rows from the dataset along with the change in stock price over the year after each data point in the set was taken. I made this function to simplify the process of obtaining data for multiple company stocks. 
+
+During my initial test of this function, I ran into some issues with errors coming from a few different inconsistencies within the data set, partly due to some measurements being taken on weekends, when stock price information is not available. Dealing with all of these issues would have been very difficult, so I opted instead to simply filter out the companies whose data contained inconsistencies. Overall, I had to get rid of data from 165 different companies. However, I kept the data from 283 companies, and each company provided 4 data points to compare to, so I believe I still had a large enough data set to gather some useful information. 
+
+I used the LEAPS package and forward subset selection to determine which 5 variables had the biggest effect on the stock's performance the next year. The top 5 variables were:
+1) Fixed Assets
+2) Changes In Inventories
+3) Effect of Exchange Rate
+4) General and Admin Sales
+5) Net Income
+
+```{r setup 2, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(quantmod)
+library(tidyverse)
+library(lubridate)
+library(leaps)
+library(purrr)
+library(ggrepel)
+fundamentals <- read.csv(file.choose())
+#You have to choose the fundamentals.csv file manually, I couldn't get it to choose the file automatically
+```
+
+```{r}
+fundamentals$Period.Ending <- as.Date(fundamentals$Period.Ending)
+data <- fundamentals %>%
+  group_by(Ticker.Symbol) %>%
+  mutate(start = (min(Period.Ending) - as.period('7d'))) %>%
+  mutate(end = (max(Period.Ending) + as.period('1y')))
+Changes <- function(symbol) {
+  sym <- data %>% filter(Ticker.Symbol == symbol)
+  chng <- as.data.frame(getSymbols(symbol, src = 'yahoo', from = sym[[1, 'start']], to = sym[[1, 'end']], auto.assign = FALSE))
+  chng <- chng %>% mutate(date = as.Date(row.names(chng)))
+  names(chng) <- c('Open', 'High', 'Low', 'Close', 'Volume', 'Adjusted', 'Period.Ending')
+  day <- weekdays(sym[[1, 'Period.Ending']])
+  if (day == 'Saturday') {
+    Offset = '1d'
+  } else if (day == 'Sunday') {
+    Offset = '2d'
+  } else {
+    Offset = '0d'
+  }
+  sym$Period.Ending <- sym$Period.Ending - as.period(Offset)
+  sym$Year.Ending <- sym$Period.Ending + as.period('364d')
+  sym$Quarter.Ending <- sym$Period.Ending + as.period('84d')
+  sym$Month.Ending <- sym$Period.Ending + as.period('28d')
+  sym$Week.Ending <- sym$Period.Ending + as.period('7d')
+  chng$Year.Ending <- chng$Period.Ending
+  chng$Quarter.Ending <- chng$Period.Ending
+  chng$Month.Ending <- chng$Period.Ending
+  chng$Week.Ending <- chng$Period.Ending
+  base <- semi_join(chng, sym, by = 'Period.Ending')
+  dyr <- semi_join(chng, sym, by = 'Year.Ending')
+  dqr <- semi_join(chng, sym, by = 'Quarter.Ending')
+  dmo <- semi_join(chng, sym, by = 'Month.Ending')
+  dwk <- semi_join(chng, sym, by = 'Week.Ending')
+  sym$dyr <- (dyr$High - base$High) / base$High
+  sym$dqr <- (dqr$High - base$High) / base$High
+  sym$dmo <- (dmo$High - base$High)
+  sym$dwk <- (dwk$High - base$High)
+  sym
+}
+Try_Changes <- function(symbol) {
+  tryCatch(Changes(symbol), error = function(e) e, warning = function(w) w)
+}
+data2 <- distinct(data[, 'Ticker.Symbol'])
+data2$Ticker.Symbol <- as.character(data2$Ticker.Symbol)
+result <- data.frame(Ticker.Symbol = character(), Result = logical(), stringsAsFactors = FALSE)
+fin <- Changes(as.character(data2[[1, 'Ticker.Symbol']]))
+for(i in 1:(nrow(data2))) {
+  result[[i, 'Ticker.Symbol']] <- data2[[(i), 'Ticker.Symbol']]
+  attempt <- Try_Changes(data2[[(i), 'Ticker.Symbol']])
+  if(is(attempt, 'warning')) {
+    result[[i, 'Result']] <- FALSE
+  } else if(is(attempt, 'error')) {
+    result[[i, 'Result']] <- FALSE
+  } else {
+    result[[i, 'Result']] <- TRUE
+    sym <- Changes(as.character(data2[[(i), 'Ticker.Symbol']]))
+    fin <- bind_rows(fin, sym)
+  }
+}
+fin1 <- fin %>% filter(For.Year > 2010) %>% filter(For.Year != 2016)
+lin.cmb <- (-1.244*10^(-12))*fin1$Fixed.Assets + (5.629*10^(-11))*fin1$Changes.in.Inventories + (1.609*10^(-10))*fin1$Effect.of.Exchange.Rate + (3.823*10^(-12))*fin1$Sales..General.and.Admin. + (-4.787*10^(-12))*fin1$Net.Income
+fin1 %>%
+  ggplot(aes(x = lin.cmb, y = dyr, label = Ticker.Symbol)) +
+  geom_hline(yintercept = 0, color = 'gray') +
+  geom_point() +
+  geom_text(aes(label = ifelse(lin.cmb == 0, as.character(Ticker.Symbol), ''), vjust = 0.2)) +
+  labs(title = 'Performance Index vs Stock Price', x = 'Performance Index', y = 'Change in Stock Price (1 Year)') +
+  facet_wrap(~For.Year) +
+  geom_point(aes(color = Ticker.Symbol), size = 2) +
+  scale_color_manual(values = c('blue', 'red', 'green', 'purple', 'orange'), limits = c('OKE', 'JPM', 'VIAB', 'SWN', 'MU'), name = 'Company', labels = c('Oneok Natural Gas', 'JPMorgan Chase', 'Viacom', 'Southwestern Energy', 'Micron Technology'))
+```
+
+I created a new variable which is a linear combination of the five most important variables above, and called it the 'Performance Index'. I then plotted the Performance Index against the change in stock price over the next year. It looks a bit messy at first, but I think there is quite a bit of useful information we can get from these graphs. 
+
+First, notice that there are many companies grouped around the center of the x-axis that tend to vary a lot on the y-axis. Smaller companies will tend to fall in this area, since they don't have large amounts of profit or loss that would change their performance index by a great amount. They have the highest variance on the y-axis because it would be easier for a small company to double in price than it would be for a large company. 
+
+Also note that the companies with exceptionally high or low performance indexes tend to not vary as much in stock price. This makes sense, because a large company with an expensive stock won't be likely to double in price or drop by a large percentage. 
+
+I also spent some time looking at the outliers to see if I could pinpoint a specific reason for the change in stock price or performance index. I highlighted some noteable companies and explored this question in the presentation.
 
 ### Predicting A Future Stock Price
 
@@ -199,6 +306,10 @@ I worked on the Bollinger Bands and Stock Prediction portions of the project. I 
 ## TODO Blake add reflection
 
 ## TODO Sam add reflection
+
+### Sam
+
+I contributed by analyzing the connection between company performance and change in stock price. I'm typically not a great public speaker, so I relied on my teammates to do well in the presentation. Because of this, I wanted my analysis to be very interesting. I decided to go with the correlation between company performance and stock price because it's a simple concept that most people can understand, but it's still a complex topic that has many avenues for analysis. 
 
 #### Tim
 

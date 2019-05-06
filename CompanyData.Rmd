@@ -20,9 +20,9 @@ fundamentals <- read.csv(file.choose())
 I imported a dataset from [Kaggle](https://www.kaggle.com/dgawlik/nyse/version/3#) that shows details about companies listed on the NYSE. I wanted to use this data set to find a correlation between the information from the data set and the change in price of a company's stock. 
 
 ```{r}
-head(fundamentals)
+#head(fundamentals)
 str(fundamentals)
-str(fundamentals$Period.Ending)
+#str(fundamentals$Period.Ending)
 fundamentals$Period.Ending <- as.Date(fundamentals$Period.Ending)
 data <- fundamentals %>%
   group_by(Ticker.Symbol) %>%
@@ -84,7 +84,7 @@ Changes <- function(symbol) {
   sym$dwk <- (dwk$High - base$High)
   sym
 }
-Changes('AAPL')
+#Changes('AAPL')
 ```
 
 I created a function that takes an input of a stock symbol and returns the associated rows from the 'data' dataset along with the change in stock price over the week, month, quarter, and year after each data point in 'data' was taken. I made this function to simplify the process of obtaining data for multiple company stocks. 
