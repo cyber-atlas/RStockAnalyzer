@@ -20,9 +20,9 @@ All sources need to be cited, which includes data source, blog posts, tutorials 
 
 
 # Stock Analysis With R 
-<br>
-###The Motivation
-<br>
+
+### The Motivation
+
 Nowadays it seems like there is a renewed attention in the stock market and investing in general. It seems like everyday you hear more and more about something a company did and how it will be the downfall of the company. The very next week, the same people that were predicting the downfall of the company, are talkng about how it's undervalued and its price is going to soar. Demonstrating to us that even the experts really don't know for sure.  
 
 The renewed interest in the market is even evident among millenials, as demonstrated by the explosion of mobile investing apps. There's a range of them that are made to appeal to people with a wide variety of financial knowledge/experience. 
@@ -43,14 +43,41 @@ Consequently that led us to explore the following questions:
 
 * Can we predict the price of a stock on a future date? There are strong arguments on both sides of this question, so we decided to test it for ourselves and draw our own conclusions. 
 
-###The Datasets 
+### The Datasets 
 <br>
 The datasets we used in this investigation were obtained from Yahoo Finance using the quantmod package and from the _____________________ Kaggle dataset. The link to the datasets are below. 
 
 [Yahoo Finance](https://finance.yahoo.com/)
 
-[]
+[Quantmod Information](https://cran.r-project.org/web/packages/quantmod/index.html)
 
-#TODO Add the kaggle dataset name and link above 
+## TODO Add the kaggle dataset name and link above 
 <br>
-#TODO Add the quantmod CRAN info
+
+### The Analysis
+
+## TODO Add the airplane stuff talking about news
+
+## TODO Add the Bitcoin AMD NVIDIA stuff talking aobut how important it is to be able to compare assets and stock prices
+
+## TODO Add the stuff about the Bollinger Bands and the importance of looking at technical indicators
+
+## TODO Add the stuff about comparing company performance vs stock price
+
+## TODO Add the stuff about predictng future stock price algorithmically
+
+### Our Conclusion
+
+## TODO Add the overall reflection
+
+### Our Sources
+
+## Add the sources
+
+## TODO Alex Add reflection
+
+## TODO Blake add reflection
+
+## TODO Sam add reflection
+
+## TODO Tim add reflection
