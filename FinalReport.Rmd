@@ -52,7 +52,6 @@ The datasets we used in this investigation were obtained from Yahoo Finance usin
 [Quantmod Information](https://cran.r-project.org/web/packages/quantmod/index.html)
 
 ## TODO Add the kaggle dataset name and link above 
-<br>
 
 ### The Analysis
 
@@ -60,11 +59,34 @@ The datasets we used in this investigation were obtained from Yahoo Finance usin
 
 ## TODO Add the Bitcoin AMD NVIDIA stuff talking aobut how important it is to be able to compare assets and stock prices
 
-## TODO Add the stuff about the Bollinger Bands and the importance of looking at technical indicators
+### Testing the Effectiveness of Bollinger Bands
+
+Given that Robinhood does not have technical indicators, I wanted to test the effectiveness of Bollinger Bands to see if they really work. If they don't work, then it's no issue that Robinhood does not have them. If they do, then it might be worth looking at a different platform. 
+
+Bollinger Bands work based on the moving average, meaning that the oldest value is dropped when a new one is added. The top band is 1 standard deviation above the moving average, the middle band is the moiving average, and the bottom band is 1 standard deviation below the moving average. 
+
+A popular strategy is to sell or enter a position that profits from a stock decreasing when the price goes down hitting the moving average. 
+
+To test this we decided to use the following code to highlight everytime the stock dips below the moving average. To give us a conceptual visual understanding of what we are looking at. 
+
+## TODO get the chart with the highlights added here 
+
+We see here that often when the stock dips, that it rebound within a day or so. This is a bit misleading because we are looking at the stocks on a day by day timeframe. However, the market reacts much faster and even the times that it dips and rebounds, traders can make money. 
+
+## TODO put in the table
+
+We also see that there are dips that are pretty significant. The largest dip was 13% as well as numerous other dips greater than 1%. This may not seem like a lot, but it is significicant given that banks often only give fractions of a percent in interest. Here we found that the mean percenage is 2.45% which is much greater. 
+
+Paired with the fact that traders can make moeny on the dips that have a good rebound, it is safe to say that Bollinger Bands work. Thus having them would be useful, and usrers should explore other trading platforms that allow them to use technical indicators. 
+
 
 ## TODO Add the stuff about comparing company performance vs stock price
 
 ## TODO Add the stuff about predictng future stock price algorithmically
+
+There are a lot of factors that contribute the price of a stock and how it moves. Given the growing popularity of algorithmic apps such as Betterment, I wanted to see if it was possible to predict the price the future price of a stock. 
+
+This results would allow users to decide for themselves as to whether or not they want to invest their money on a platform that is not traded by humans. 
 
 ### Our Conclusion
 
