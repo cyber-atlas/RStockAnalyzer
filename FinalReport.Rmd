@@ -73,7 +73,8 @@ To test this we decided to use the following code to highlight everytime the sto
 
 We see here that often when the stock dips, that it rebound within a day or so. This is a bit misleading because we are looking at the stocks on a day by day timeframe. However, the market reacts much faster and even the times that it dips and rebounds, traders can make money. 
 
-## TODO put in the table
+##### Table of Percent Change, Number of Days Below the Moving Average, and the Percent Change per Day
+![](BBandTable.png)
 
 We also see that there are dips that are pretty significant. The largest dip was 13% as well as numerous other dips greater than 1%. This may not seem like a lot, but it is significicant given that banks often only give fractions of a percent in interest. Here we found that the mean percenage is 2.45% which is much greater. 
 
@@ -82,24 +83,85 @@ Paired with the fact that traders can make moeny on the dips that have a good re
 
 ## TODO Add the stuff about comparing company performance vs stock price
 
-## TODO Add the stuff about predictng future stock price algorithmically
+
+### Predicting A Future Stock Price
 
 There are a lot of factors that contribute the price of a stock and how it moves. Given the growing popularity of algorithmic apps such as Betterment, I wanted to see if it was possible to predict the price the future price of a stock. 
 
 This results would allow users to decide for themselves as to whether or not they want to invest their money on a platform that is not traded by humans. 
 
+I decided to test my hypothesis on the S&P500 because it is a generalization for many stocks. I also, checked that it had an overall positive trend, and that overall the stock was increasing. 
+
+```{r message=FALSE, warning=FALSE}
+#Getting the required libraries, we are assuming you already have them installed 
+#If not you can install them from the CRAN using packages.install(<library name>)
+library('quantmod')
+library(tidyquant)
+library('forecast')
+library('ggplot2')
+
+getSymbols("SPY", src="yahoo", from="2019-01-01", to="2019-04-27")
+Returns <- diff(SPY$SPY.Close)/lag(SPY$SPY.Close, k=1)*1000
+Returns<-fortify(Returns)
+
+ggplot(Returns, aes(x=SPY.Close) )+
+  geom_histogram(binwidth = 2, color="black",fill="white",center=0)+ 
+  scale_x_continuous(breaks=seq(-26, 36, 2))+
+  geom_vline(xintercept = 0, col = 'darkred')+
+  scale_y_continuous(breaks=seq(-1, 18, 2))+
+  ggtitle("Frequency of Daily Percentage Change")+
+  xlab("Percentage Difference")+
+  ylab("Number of Occurances")
+
+```
+
+We see that the percent change is pretty normally distributed and has slightly more days where it increases in prices vs when it decreases.  
+
+To model it, I chose to use the ARIMA model as the basis for my prediction. I did so because it is widely used to predict time based values.  
+
+The ARIMA Model is the AutoRegressive Moving Average. Meaning that it checks how much it correlates with itself, is based off of the moving average, and uses differencing to make the data stationary. I used 1 degree of differencing, meaning that instead of looking at the price of the stock, we looked at the difference in price relative to the previous day. 
+
+I modeled the price of the stock using only data from this year because it would be the most relevant. I chose to use the auto arima function because it tries all of the ARIMA models and choses the best fit for our data. 
+
+I then used the forecast package in R to try to estimate the price based on the modeled data. 
+
+```{r message=FALSE, warning=FALSE}
+
+arimaData <- auto.arima(SPY$SPY.Close)
+fit.forecast <- forecast(arimaData)
+fit.forecast
+
+```
+
+
+In 2019 there were 80 trading days from January 1st  to April 27th that we were able to use. The first 19 days were used to establish the moving average. With this data, we were able to predict that the price on the 81st day (April 29th) would be $293.83 at close. 
+
+The actual closing value of the stock was $293.87. As you can see, our prediction was very accurate. Often small differences of a few cents can be attributed to the platform that is gathering the data. Many stock trading platforms will be within a few cents of each other and the difference ussually comes down to the speed of their order execution and what their last reported bid and offer were.  
+
+With the success of our model, I would say that it is worth looking more into the effectiveness of algorithmic trading, perhaps with more stocks. We have seen that the algorithms can be effective, and if used on a larger scale, could be profitable. 
+
 ### Our Conclusion
 
-## TODO Add the overall reflection
+Our research was mainly to satisfy curiosity. We wanted to explore what merits there might be to taking different approaches when going about the stock market. We advise the reader to take our analysis and exploration as a starting point to make their own decisions. The stock market is very complex and there is a reason why so many people have lost a lot of money in it. Any one who tells you that they have it figured it out, is lying. Even Warren Buffet lost $4 billion in a matter of hours earlier this year. There are a lot more questions that can be answered, and we hope this provides an idea of how to go about satisfying your curiosity. 
+
 
 ### Our Sources
 
-## Add the sources
+Data Science Cookbook By YuWei Chiu
 
-## TODO Alex Add reflection
+## TODO Add the sources
 
+### Reflections
+
+#### Alex
+
+I worked on the Bollinger Bands and Stock Prediction portions of the project. I also found the dataset and was the one who spoke with Dr Dai about getting the project approved. I coordinated our team meetings and efforts as well. 
+
+#### Blake
 ## TODO Blake add reflection
 
+#### Sam
 ## TODO Sam add reflection
 
+#### Tim
 ## TODO Tim add reflection
