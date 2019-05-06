@@ -53,11 +53,46 @@ The datasets we used in this investigation were obtained from Yahoo Finance usin
 
 ## TODO Add the kaggle dataset name and link above 
 
-### The Analysis
+### **The Analysis**
 
 ## TODO Add the airplane stuff talking about news
 
-## TODO Add the Bitcoin AMD NVIDIA stuff talking aobut how important it is to be able to compare assets and stock prices
+### Comparing AMD and Nvidia With the Rise and Fall of Bitcoin
+
+We wanted to take a look at two competing companies, Nvidia and AMD, and see what happened to their stock prices when outside forces impacted their marketplace. The outside force chosen here was the shortage of GPUs do to the rise in cryptocurrency mining in the first half of 2018.
+
+The process of mining cryptocurrency involves solving increasingly complex calculations on a machine in order to generate new coins and to uodate the blockchain that serves as the currency ledger. As a currency matures, miners need increasingly more powerful mining rigs with enough processing power to generate a profit from the coins. When Bitcoin and other cryptocurrencies became truly lucrative in 2017, the large influx in miners led to a dramatic increase in the demand for Nvidia and AMD GPUs. The law of Supply and Demand took over, and the selling price of most of the GPUs on the market skyrocketed, in some cases double the MSRP. 
+
+At the beginning, this increase in sales led to a spike in the stock prices of both companies. However, the lack of supply and a decrease in the demand from the mining sector soon proved to be a problem. 
+
+The end of summer 2018 saw a massive decrease in the demand for new GPUs from coin miners. The cost of coninuously mining cyrptocureency had overcome the profit turned from the mining, and many left the scene. The problem for Nivdia and Amd here was that the prices of the GPUs on the market could not correct themselves fast enough to keep up with the decrease in sales. As a result, no one could or would buy their products. This led to the stock price for each company to plummet. From September to November, shares fell for both companies. Nvidia managed to los 54% of their stock value in Q4 of 2018 alone. 
+
+ ```{r setup, message=FALSE, warning=FALSE}
+library(quantmod)
+library(ggplot2)
+library(plotly)
+library('forecast')
+```
+
+```{r NVDA AMD, message=FALSE, warning=FALSE}
+start <- as.Date("2018-07-01")
+end <- as.Date("2019-01-01")
+
+getSymbols(c("AMD", "NVDA"), src="yahoo", from = start, to = end)
+
+stocks <- as.xts(data.frame(nv = NVDA$"NVDA.Close", amd = AMD$"AMD.Close"))
+
+plot(as.zoo(stocks$"NVDA.Close"),screens = 1,lty = 1,main="Closing Prices of Nvidia, AMD", col = "red" ,xlab = "Date, July 2018 - January 2019",ylab = "Close Price, USD") 
+#  geom_vline(xintercept = as.Date("2018-09-01"), size=0.5, linetype="dotted")
+par(new = TRUE)
+plot(as.zoo(stocks$"AMD.Close"),screens = 1,lty = 2,col = "blue" ,xlab = "",ylab = "", xaxt = "n", yaxt = "n")
+abline(v = as.Date("2018-09-01"), lty = 2)
+axis(4)
+mtext("Price", side = 4, line = 3)
+legend("topleft",c("Nvidia(left)","AMD(right)"),lty = c(1,2),cex = 0.5)
+```
+
+This graph shows the stock prices for Nvidia and AMD from July, 2018 to January, 2019. We can see the fluctuation in the stock prices for both companies here. Since the share price for Nvidia is much higher than that of AMD, each line is scaled individually on the graph. From here, we can clearly see the correlation between the decline in cryptocurrency mining and the drop in the stock prices. 
 
 ### Testing the Effectiveness of Bollinger Bands
 
@@ -74,7 +109,8 @@ To test this we decided to use the following code to highlight everytime the sto
 We see here that often when the stock dips, that it rebound within a day or so. This is a bit misleading because we are looking at the stocks on a day by day timeframe. However, the market reacts much faster and even the times that it dips and rebounds, traders can make money. 
 
 ##### Table of Percent Change, Number of Days Below the Moving Average, and the Percent Change per Day
-![](BBandTable.png)
+![](BBandTable.png) 
+
 
 We also see that there are dips that are pretty significant. The largest dip was 13% as well as numerous other dips greater than 1%. This may not seem like a lot, but it is significicant given that banks often only give fractions of a percent in interest. Here we found that the mean percenage is 2.45% which is much greater. 
 
@@ -82,7 +118,6 @@ Paired with the fact that traders can make moeny on the dips that have a good re
 
 
 ## TODO Add the stuff about comparing company performance vs stock price
-
 
 ### Predicting A Future Stock Price
 
@@ -147,21 +182,26 @@ Our research was mainly to satisfy curiosity. We wanted to explore what merits t
 
 ### Our Sources
 
+https://cointelegraph.com/news/following-crypto-mining-crash-gpu-producer-nvidia-worst-performer-in-sp-500
+http://rstudio-pubs-static.s3.amazonaws.com/265813_dab79c8eb62d41e381a7e230465573ab.html
+
+http://rstudio-pubs-static.s3.amazonaws.com/265813_dab79c8eb62d41e381a7e230465573ab.html
+
 Data Science Cookbook By YuWei Chiu
 
-## TODO Add the sources
 
 ### Reflections
 
 #### Alex
 
-I worked on the Bollinger Bands and Stock Prediction portions of the project. I also found the dataset and was the one who spoke with Dr Dai about getting the project approved. I coordinated our team meetings and efforts as well. 
+I worked on the Bollinger Bands and Stock Prediction portions of the project. I also found the dataset and was the one who spoke with Dr Dai about getting the project approved. I coordinated our team meetings and efforts as well. I wanted to go more in depth with the analysis, but given that we had homeworks and labs up until the presentation was not able to. I also wanted to go more in depth in the presentation, as not everyone has the same financial background. However, I was not able to due to the time constraint. 
 
-#### Blake
 ## TODO Blake add reflection
 
-#### Sam
 ## TODO Sam add reflection
 
 #### Tim
-## TODO Tim add reflection
+
+My contribution to the project was the comparison between Nvidia and AMD. It wasn't the most in-depth or difficult analysis, but I was able to graph the stock prices for each company over time. Then, since I had prior knowledge of the Bitcoin blowup and the effect it had on Nvidia GPUs, I decided to look into what happened to each companies stocks over that specific timeframe. I actually found pretty much exactly what I expected - there was a very noticiable impact on both companies performances on the market. 
+
+Since we didn't have any more time, both in the presentation and just in the class itself, I wasn't able to take the exploration much further. However, I do find the plenty interesting, and I think that I will look into stuff like this more in my own time later. 
