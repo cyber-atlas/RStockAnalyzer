@@ -45,7 +45,7 @@ Consequently that led us to explore the following questions:
 
 ### The Datasets 
 <br>
-The datasets we used in this investigation were obtained from Yahoo Finance using the quantmod package and from the _____________________ Kaggle dataset. The link to the datasets are below. 
+The datasets we used in this investigation were obtained from Yahoo Finance using the quantmod package and from New York Stock Exchange Kaggle dataset. The link to the datasets are below. 
 
 [Yahoo Finance](https://finance.yahoo.com/)
 
@@ -55,9 +55,9 @@ The datasets we used in this investigation were obtained from Yahoo Finance usin
 
 ### **The Analysis**
 
-## Stock price reaction to publicized events in the aviation industry.
+### Stock price reaction to publicized events in the aviation industry.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library("dplyr")
 library("tidyr")
 library("tidyverse")
@@ -80,25 +80,17 @@ library("tidyquant")
 library("quantmod")
 #install.packages("magrittr")
 library('magrittr')
-```
 
-```{r}
 #Define start and End dates
 start <- as.Date("2018-01-01")
 end <- as.Date("2019-04-01")
-```
 
-```{r}
-?getSymbols
 getSymbols(c("BA", "EADSF", "SPY"), src="yahoo", from = start, to = end)
-```
 
-```{r}
-#https://www.axios.com/boeing-737-max-crash-what-know-a5087b8e-1787-4de5-bece-d1350d5695cf.html
 #On 29 October 2018, the Boeing 737 MAX 8 operating the route crashed into the Java Sea 12 minutes after takeoff, killing all 189 passengers and crew.
 #On 10 March 2019, the Boeing 737 MAX 8 aircraft which operated the flight crashed near the town of Bishoftu six minutes after takeoff, killing all 157 people aboard.
 
-#https://stackoverflow.com/questions/3386850/how-can-i-change-xts-to-data-frame-and-keep-index
+
 ba_df <- data.frame(date=index(BA), coredata(BA)) %>% 
   mutate(BA.day_difference = (BA.High-BA.Low)/max(BA.Close)) %>%
   mutate(BA.scale_max = BA.Close/max(BA.Close)) %>%
