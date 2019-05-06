@@ -1,0 +1,195 @@
+---
+title: "Company Info Analysis"
+author: "Sam Begley"
+date: "April 25, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(quantmod)
+library(tidyverse)
+library(lubridate)
+library(leaps)
+library(purrr)
+library(ggrepel)
+fundamentals <- read.csv(file.choose())
+#You have to choose the fundamentals.csv file manually, I couldn't get it to choose the file automatically
+```
+
+I imported a dataset from [Kaggle](https://www.kaggle.com/dgawlik/nyse/version/3#) that shows details about companies listed on the NYSE. I wanted to use this data set to find a correlation between the information from the data set and the change in price of a company's stock. 
+
+```{r}
+#head(fundamentals)
+str(fundamentals)
+#str(fundamentals$Period.Ending)
+fundamentals$Period.Ending <- as.Date(fundamentals$Period.Ending)
+data <- fundamentals %>%
+  group_by(Ticker.Symbol) %>%
+  mutate(start = (min(Period.Ending) - as.period('7d'))) %>%
+  mutate(end = (max(Period.Ending) + as.period('1y')))
+#Added 2 new columns
+  #start = 1 year before the first data collection by company
+  #end = 1 year after the first data collection by company
+```
+
+I changed the Period.Ending column from factors to dates to make it easier to work with. I then added two additional columns to the dataframe, start is the date 1 year before the first Period.Ending observation. end is the date 1 year after the last Period.Ending observation.
+
+```{r}
+#Just looking at AAPL
+AAPL <- data %>% filter(Ticker.Symbol == 'AAPL')
+AAPL1 <- getSymbols('AAPL', src = 'yahoo', 
+                    from = AAPL$start, to = AAPL$end, auto.assign = FALSE)
+AAPL1 <- as.data.frame(AAPL1)
+AAPL1 <- AAPL1 %>% mutate(date = as.Date(row.names(AAPL1)))
+ggplot(data = AAPL1, aes(x = date, y = AAPL.Open)) + 
+  geom_point(aes(col = 'red'), size = 0.1) +
+  geom_point(aes(y = AAPL.Close, col = 'green'), size = 0.1) +
+  labs(title = 'AAPL Stock Performance', x = 'Date', y = 'Stock Price (Dollars)')
+```
+
+I retrieved the data from AAPL's stock market history. I then added a row for the date the measurement was taken, since the date was stored in the index of the data frame originally. I then tested to make sure that the data would work with ggplot2.
+
+```{r}
+Changes <- function(symbol) {
+  sym <- data %>% filter(Ticker.Symbol == symbol)
+  chng <- as.data.frame(getSymbols(symbol, src = 'yahoo', from = sym[[1, 'start']], to = sym[[1, 'end']], auto.assign = FALSE))
+  chng <- chng %>% mutate(date = as.Date(row.names(chng)))
+  names(chng) <- c('Open', 'High', 'Low', 'Close', 'Volume', 'Adjusted', 'Period.Ending')
+  day <- weekdays(sym[[1, 'Period.Ending']])
+  if (day == 'Saturday') {
+    Offset = '1d'
+  } else if (day == 'Sunday') {
+    Offset = '2d'
+  } else {
+    Offset = '0d'
+  }
+  sym$Period.Ending <- sym$Period.Ending - as.period(Offset)
+  sym$Year.Ending <- sym$Period.Ending + as.period('364d')
+  sym$Quarter.Ending <- sym$Period.Ending + as.period('84d')
+  sym$Month.Ending <- sym$Period.Ending + as.period('28d')
+  sym$Week.Ending <- sym$Period.Ending + as.period('7d')
+  chng$Year.Ending <- chng$Period.Ending
+  chng$Quarter.Ending <- chng$Period.Ending
+  chng$Month.Ending <- chng$Period.Ending
+  chng$Week.Ending <- chng$Period.Ending
+  base <- semi_join(chng, sym, by = 'Period.Ending')
+  dyr <- semi_join(chng, sym, by = 'Year.Ending')
+  dqr <- semi_join(chng, sym, by = 'Quarter.Ending')
+  dmo <- semi_join(chng, sym, by = 'Month.Ending')
+  dwk <- semi_join(chng, sym, by = 'Week.Ending')
+  sym$dyr <- (dyr$High - base$High) / base$High
+  sym$dqr <- (dqr$High - base$High) / base$High
+  sym$dmo <- (dmo$High - base$High)
+  sym$dwk <- (dwk$High - base$High)
+  sym
+}
+#Changes('AAPL')
+```
+
+I created a function that takes an input of a stock symbol and returns the associated rows from the 'data' dataset along with the change in stock price over the week, month, quarter, and year after each data point in 'data' was taken. I made this function to simplify the process of obtaining data for multiple company stocks. 
+
+```{r}
+Try_Changes <- function(symbol) {
+  tryCatch(Changes(symbol), error = function(e) e, warning = function(w) w)
+}
+data2 <- distinct(data[, 'Ticker.Symbol'])
+data2$Ticker.Symbol <- as.character(data2$Ticker.Symbol)
+result <- data.frame(Ticker.Symbol = character(), Result = logical(), stringsAsFactors = FALSE)
+fin <- Changes(as.character(data2[[1, 'Ticker.Symbol']]))
+for(i in 1:(nrow(data2))) {
+  result[[i, 'Ticker.Symbol']] <- data2[[(i), 'Ticker.Symbol']]
+  attempt <- Try_Changes(data2[[(i), 'Ticker.Symbol']])
+  if(is(attempt, 'warning')) {
+    result[[i, 'Result']] <- FALSE
+  } else if(is(attempt, 'error')) {
+    result[[i, 'Result']] <- FALSE
+  } else {
+    result[[i, 'Result']] <- TRUE
+    sym <- Changes(as.character(data2[[(i), 'Ticker.Symbol']]))
+    fin <- bind_rows(fin, sym)
+  }
+}
+```
+
+During my initial test of this function, I ran into some issues with errors coming from a few different inconsistencies within the data set. Dealing with all of these issues would have been very difficult, so I opted instead to simply filter out the companies whose data contained inconsistencies. Overall, I had to get rid of data from 165 different companies. However, I kept the data from 283 companies, and each company provided 4 data points to compare to, so I believe I still have a large enough data set to gather some useful information. 
+
+```{r}
+pred <- fin %>% ungroup() %>% select(-X, -Ticker.Symbol, -Period.Ending, -start, -end, -Year.Ending, -Quarter.Ending, -Month.Ending, -Week.Ending, -dyr, -dqr, -dmo, -dwk, -Cash.Ratio, -Current.Ratio, -Quick.Ratio, -For.Year, -Earnings.Per.Share, -Estimated.Shares.Outstanding) %>% as.matrix()
+yr.resp <- fin %>% ungroup() %>% select(dyr) %>% as.matrix()
+leaps.fwd <- regsubsets(x = pred, y = yr.resp, nvmax = 5, method = 'forward')
+leaps.fwd['vorder']
+plot(leaps.fwd, scale = 'bic', main = 'Best Subset Selection', xlab = 'Subset Performance', ylab = 'Prediction Variable')
+```
+
+I used the LEAPS package and forward subset selection to determine which 5 variables had the biggest effect on the stock's performance the next year. The top 5 variables were:
+1) Fixed Assets
+2) Changes In Inventories
+3) Effect of Exchange Rate
+4) General and Admin Sales
+5) Net Income
+
+```{r}
+fin1 <- fin %>% filter(For.Year > 2010) %>% filter(For.Year != 2016)
+lin.cmb <- (-1.244*10^(-12))*fin1$Fixed.Assets + (5.629*10^(-11))*fin1$Changes.in.Inventories + (1.609*10^(-10))*fin1$Effect.of.Exchange.Rate + (3.823*10^(-12))*fin1$Sales..General.and.Admin. + (-4.787*10^(-12))*fin1$Net.Income
+fin1 %>%
+  ggplot(aes(x = lin.cmb, y = dyr, label = Ticker.Symbol)) +
+  geom_hline(yintercept = 0, color = 'gray') +
+  geom_point() +
+  geom_text(aes(label = ifelse(lin.cmb == 0, as.character(Ticker.Symbol), ''), vjust = 0.2)) +
+  labs(title = 'Performance Index vs Stock Price', x = 'Performance Index', y = 'Change in Stock Price (1 Year)') +
+  facet_wrap(~For.Year) +
+  geom_point(aes(color = Ticker.Symbol), size = 2) +
+  scale_color_manual(values = c('blue', 'red', 'green', 'purple', 'orange'), limits = c('OKE', 'JPM', 'VIAB', 'SWN', 'MU'), name = 'Company', labels = c('Oneok Natural Gas', 'JPMorgan Chase', 'Viacom', 'Southwestern Energy', 'Micron Technology')) +
+  ggsave('Year Performance.png', width = 10, height = 5)
+```
+
+I created a new variable which is a linear combination of the five most important variables above, and called it the 'Performance Index'. I then plotted the Performance Index against the change in stock price over the next year. It looks a bit messy at first, but I think there is quite a bit of useful information we can get from these graphs. 
+
+
+First, notice that there are many companies grouped around the center of the x-axis that tend to vary a lot on the y-axis. Smaller companies will tend to fall in this area, since they don't have large amounts of profit or loss that would change their performance index by a great amount. They have the highest variance on the y-axis because it would be easier for a small company to double in price than it would be for a large company. 
+
+
+Also note that the companies with exceptionally high or low performance indexes tend to not vary as much in stock price. This makes sense, because a large company with an expensive stock won't be likely to double in price or drop by a large percentage. 
+
+I also spent some time looking at the outliers to see if I could pinpoint a specific reason for the change in stock price or performance index. I highlighted some noteable companies and explored this question in the presentation.
+
+```{r}
+pred <- fin %>% ungroup() %>% select(-X, -Ticker.Symbol, -Period.Ending, -start, -end, -Year.Ending, -Quarter.Ending, -Month.Ending, -Week.Ending, -dyr, -dqr, -dmo, -dwk, -Cash.Ratio, -Current.Ratio, -Quick.Ratio, -For.Year, -Earnings.Per.Share, -Estimated.Shares.Outstanding) %>% as.matrix()
+qr.resp <- fin %>% ungroup() %>% select(dqr) %>% as.matrix()
+mo.resp <- fin %>% ungroup() %>% select(dmo) %>% as.matrix()
+wk.resp <- fin %>% ungroup() %>% select(dwk) %>% as.matrix()
+leaps.fwd <- regsubsets(x = pred, y = qr.resp, nvmax = 5, method = 'forward')
+leaps.fwd['vorder']
+plot(leaps.fwd, scale = 'bic', main = 'Best Subset Selection', xlab = 'Subset Performance', ylab = 'Prediction Variable')
+```
+
+
+I used the LEAPS package once again, but this time looking at the change in price during the 3 months after the measurements were taken. I wanted to see if there was any noticeable difference in the pattern of the graph. 
+
+
+```{r}
+q5 <- fin %>% ungroup %>% select(Effect.of.Exchange.Rate, Net.Income.Cont..Operations, Treasury.Stock, Misc..Stocks, Deferred.Asset.Charges, Net.Cash.Flow.Operating) %>% as.matrix()
+lm(qr.resp ~ q5)
+fin1 <- fin %>% filter(For.Year > 2010) %>% filter(For.Year !=2016)
+qr.lin.cmb <- (8.113*10^(-11))*fin$Effect.of.Exchange.Rate +
+  (-1.716*10^(-13))*fin$Treasury.Stock +
+  (-2.457*10^(-12))*fin$Deferred.Asset.Charges +
+  (-3.324*10^(-12))*fin$Net.Income.Cont..Operations +
+  (-3.816*10^(-11))*fin$Misc..Stocks +
+  (1.256*10^(-12))*fin$Net.Cash.Flow.Operating
+lin.cmb <- (-1.244*10^(-12))*fin1$Fixed.Assets + (5.629*10^(-11))*fin1$Changes.in.Inventories + (1.609*10^(-10))*fin1$Effect.of.Exchange.Rate + (3.823*10^(-12))*fin1$Sales..General.and.Admin. + (-4.787*10^(-12))*fin1$Net.Income
+fin1 %>%
+  ggplot(aes(x = lin.cmb, y = dqr, label = Ticker.Symbol)) + 
+  geom_point() +
+  geom_text(aes(label = ifelse(lin.cmb == 0, as.character(Ticker.Symbol), ''), vjust = 0.2)) +
+  labs(title = 'Performance Index vs Stock Price', x = 'Performance Index', y = 'Change in Stock Price (1 Year)') +
+  facet_wrap(~For.Year) +
+  geom_point(aes(color = Ticker.Symbol), size = 2) +
+  scale_color_manual(values = c('blue', 'red', 'green', 'purple', 'orange'), limits = c('XOM', 'JRM', 'VIAB', 'SWN', 'AAPL'), name = 'Company', labels = c('Exxon Mobil', 'JRM Construction', 'Viacom', 'Southwestern Energy', 'Apple'))
+```
+
+After exploring different time periods to observe, I didn't notice much difference in the pattern of the data. I decided to just go with the yearly period for the presentation. 
+
+
+In conclusion, I don't think this method of prediction would be particularly successful. It is, however, useful for finding companies that have gone through large changes. 

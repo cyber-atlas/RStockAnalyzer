@@ -5,20 +5,6 @@ date: "5/5/2019"
 output: html_document
 ---
 
-
-Tell the story, not only the coding
-The total number of figures and tables should not exceed 10. Include only the most interesting results, and condense information in each figure.
-Each figure, table, or analysis must be accomanied by explanatory text.
-The project report should include a personal contribution section. Each teammate will write a paragraph about his/her own contribution to the team.
-An optional survey for comments on the contributions of your teammates will be sent out.
-
-
-Report is due on 12:00pm, May 6 sharp
-Each team should push to GitHub by the deadline, and the coordinator will email the instructor the link to their GitHub repo.
-If feasible, each team please also bring a color printed copy
-All sources need to be cited, which includes data source, blog posts, tutorials that include codes, etc. R help document does not need to be cited.
-
-
 # Stock Analysis With R 
 
 ### The Motivation
@@ -45,13 +31,13 @@ Consequently that led us to explore the following questions:
 
 ### The Datasets 
 <br>
-The datasets we used in this investigation were obtained from Yahoo Finance using the quantmod package and from New York Stock Exchange Kaggle dataset. The link to the datasets are below. 
+The datasets we used in this investigation were obtained from Yahoo Finance using the quantmod package and from a New York Stock Exchange Kaggle dataset. The link to the datasets are below. 
 
 [Yahoo Finance](https://finance.yahoo.com/)
 
 [Quantmod Information](https://cran.r-project.org/web/packages/quantmod/index.html)
 
-## TODO Add the kaggle dataset name and link above 
+[Kaggle Dataset](https://www.kaggle.com/dgawlik/nyse/version/3#)
 
 ### **The Analysis**
 
@@ -66,19 +52,11 @@ library("readxl")
 library("ggrepel")
 library("RColorBrewer")
 library("padr")
-
-#install.packages("tseries")
 #https://cran.r-project.org/src/contrib/Archive/forecast/
-#install.packages("uroot")
-#install.packages("nnet")
 #install.packages("~/Downloads/forecast_8.4.tar", repos = NULL)
 #https://cran.r-project.org/src/contrib/Archive/quadprog/
-#install.packages("~/Downloads/quadprog_1.5-5.tar", repos = NULL)
-#install.packages("tidyquant")
 library("tidyquant")
-#install.packages("quantmod")
 library("quantmod")
-#install.packages("magrittr")
 library('magrittr')
 
 #Define start and End dates
@@ -89,7 +67,6 @@ getSymbols(c("BA", "EADSF", "SPY"), src="yahoo", from = start, to = end)
 
 #On 29 October 2018, the Boeing 737 MAX 8 operating the route crashed into the Java Sea 12 minutes after takeoff, killing all 189 passengers and crew.
 #On 10 March 2019, the Boeing 737 MAX 8 aircraft which operated the flight crashed near the town of Bishoftu six minutes after takeoff, killing all 157 people aboard.
-
 
 ba_df <- data.frame(date=index(BA), coredata(BA)) %>% 
   mutate(BA.day_difference = (BA.High-BA.Low)/max(BA.Close)) %>%
@@ -178,11 +155,11 @@ At the beginning, this increase in sales led to a spike in the stock prices of b
 
 The end of summer 2018 saw a massive decrease in the demand for new GPUs from coin miners. The cost of coninuously mining cyrptocureency had overcome the profit turned from the mining, and many left the scene. The problem for Nivdia and Amd here was that the prices of the GPUs on the market could not correct themselves fast enough to keep up with the decrease in sales. As a result, no one could or would buy their products. This led to the stock price for each company to plummet. From September to November, shares fell for both companies. Nvidia managed to los 54% of their stock value in Q4 of 2018 alone. 
 
- ```{r setup, message=FALSE, warning=FALSE}
+```{r setup, message=FALSE, warning=FALSE}
 library(quantmod)
 library(ggplot2)
 library(plotly)
-library('forecast')
+library(forecast)
 ```
 
 ```{r NVDA AMD, message=FALSE, warning=FALSE}
@@ -215,14 +192,12 @@ A popular strategy is to sell or enter a position that profits from a stock decr
 
 To test this we decided to use the following code to highlight everytime the stock dips below the moving average. To give us a conceptual visual understanding of what we are looking at. 
 
-## Added the chart with highlights 
-
-```{r}
+#### Highligting the Dips Below the Moving Average
+```{r message=FALSE, warning=FALSE}
 spy_df <- data.frame(date=index(SPY), coredata(SPY)) %>% 
   mutate(SPY.day_difference = SPY.High-SPY.Low) %>%
   mutate(SPY.scale_max = SPY.Close/max(SPY.Close))
 
-#https://cran.r-project.org/web/packages/tidyquant/vignettes/TQ04-charting-with-tidyquant.html
 bband_n <- 20
 spy_df <- mutate(spy_df, SPY.SMA = SMA(unlist(spy_df[,2]), n=bband_n)) %>% 
   #mutate(below_SMA = SPY.Close < SPY.SMA)
@@ -233,14 +208,11 @@ keep_SMA <- 0
 for (row in 1:nrow(pad_spy_df)) {
   SMA <- pad_spy_df[row, "below_SMA"]
   if(!is.na(SMA)) {
-    #print(paste("if",keep_SMA,sep=":"))
     keep_SMA <- SMA
   } else if(keep_SMA == 1000) {
-    #print(paste("elseif",keep_SMA,sep=":"))
     pad_spy_df[row, "below_SMA"] <- 1000
   }
 }
-
 
 ggplot(spy_df, aes(x = date, y = SPY.Close, open = SPY.Open, 
                   high = SPY.High, low = SPY.Low, close = SPY.Close))+
@@ -271,8 +243,31 @@ We also see that there are dips that are pretty significant. The largest dip was
 
 Paired with the fact that traders can make moeny on the dips that have a good rebound, it is safe to say that Bollinger Bands work. Thus having them would be useful, and usrers should explore other trading platforms that allow them to use technical indicators. 
 
+### Comparing Company Performance to Changes in Stock Price
 
-## TODO Add the stuff about comparing company performance vs stock price
+I imported a dataset from [Kaggle](https://www.kaggle.com/dgawlik/nyse/version/3#) that shows details about companies listed on the NYSE. I wanted to use this data set to find a correlation between the information from the data set and the change in price of a company's stock. I spent some time cleaning the data set and changing some strings to dates. I also added a row with the date each measurement was taken, since that information was originally in the index. I also added a new row that gave the date 1 year after the measurement was taken. I did this so I could easily access it later when telling the quantmod package what period to get information from. 
+
+I created a function that takes an input of a stock symbol and returns the associated rows from the dataset along with the change in stock price over the year after each data point in the set was taken. I made this function to simplify the process of obtaining data for multiple company stocks. 
+
+During my initial test of this function, I ran into some issues with errors coming from a few different inconsistencies within the data set, partly due to some measurements being taken on weekends, when stock price information is not available. Dealing with all of these issues would have been very difficult, so I opted instead to simply filter out the companies whose data contained inconsistencies. Overall, I had to get rid of data from 165 different companies. However, I kept the data from 283 companies, and each company provided 4 data points to compare to, so I believe I still had a large enough data set to gather some useful information. 
+
+I used the LEAPS package and forward subset selection to determine which 5 variables had the biggest effect on the stock's performance the next year. The top 5 variables were:
+1) Fixed Assets
+2) Changes In Inventories
+3) Effect of Exchange Rate
+4) General and Admin Sales
+5) Net Income
+
+##### Plots of Performance Index vs Stock Price
+![](performance.png)
+
+I created a new variable which is a linear combination of the five most important variables above, and called it the 'Performance Index'. I then plotted the Performance Index against the change in stock price over the next year. It looks a bit messy at first, but I think there is quite a bit of useful information we can get from these graphs. 
+
+First, notice that there are many companies grouped around the center of the x-axis that tend to vary a lot on the y-axis. Smaller companies will tend to fall in this area, since they don't have large amounts of profit or loss that would change their performance index by a great amount. They have the highest variance on the y-axis because it would be easier for a small company to double in price than it would be for a large company. 
+
+Also note that the companies with exceptionally high or low performance indexes tend to not vary as much in stock price. This makes sense, because a large company with an expensive stock won't be likely to double in price or drop by a large percentage. 
+
+I also spent some time looking at the outliers to see if I could pinpoint a specific reason for the change in stock price or performance index. I highlighted some noteable companies and explored this question in the presentation.
 
 ### Predicting A Future Stock Price
 
@@ -351,6 +346,14 @@ http://rstudio-pubs-static.s3.amazonaws.com/265813_dab79c8eb62d41e381a7e23046557
 
 http://rstudio-pubs-static.s3.amazonaws.com/265813_dab79c8eb62d41e381a7e230465573ab.html
 
+https://www.fool.com/investing/general/2014/01/13/how-micron-technology-plans-to-improve-top-line.aspx
+
+https://dealbook.nytimes.com/2014/03/19/jpmorgan-to-sell-commodities-unit-for-3-5-billion/
+
+https://stateimpact.npr.org/pennsylvania/2018/06/11/court-rejects-fracking-companys-appeal-in-rule-of-capture-decision/ 
+
+https://cran.r-project.org/web/packages/tidyquant/vignettes/TQ04-charting-with-tidyquant.html
+
 Data Science Cookbook By YuWei Chiu
 
 ### Reflections
@@ -359,11 +362,13 @@ Data Science Cookbook By YuWei Chiu
 
 I worked on the Bollinger Bands and Stock Prediction portions of the project. I also found the dataset and was the one who spoke with Dr Dai about getting the project approved. I coordinated our team meetings and efforts as well. I wanted to go more in depth with the analysis, but given that we had homeworks and labs up until the presentation was not able to. I also wanted to go more in depth in the presentation, as not everyone has the same financial background. However, I was not able to due to the time constraint. 
 
-## Blake
+#### Blake
 
 I compared significant publicized events directly related to the aviation industry to Boeing and Airbus stock prices. My contribution included all related plots and the written interpretation of the plots. I also created the SPY plot demonstrating Bollinger Bands and Simple Moving Average.
 
-## TODO Sam add reflection
+#### Sam
+
+I contributed by analyzing the connection between company performance and change in stock price. I'm typically not a great public speaker, so I relied on my teammates to do well in the presentation. Because of this, I wanted my analysis to be very interesting. I decided to go with the correlation between company performance and stock price because it's a simple concept that most people can understand, but it's still a complex topic that has many avenues for analysis. 
 
 #### Tim
 
