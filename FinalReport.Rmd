@@ -42,7 +42,7 @@ The datasets we used in this investigation were obtained from Yahoo Finance usin
 
 ### **The Analysis**
 
-### Stock price reaction to publicized events in the aviation industry.
+### Stock Price Reaction To Publicized Events In The Aviation Industry
 
 ```{r, message=FALSE, warning=FALSE}
 library("dplyr")
@@ -334,6 +334,8 @@ Our research was mainly to satisfy curiosity. We wanted to explore what merits t
 
 
 ### **Our Sources**
+
+https://www.axios.com/boeing-737-max-crash-what-know-a5087b8e-1787-4de5-bece-d1350d5695cf.html
 
 https://boeing.mediaroom.com/2018-02-05-Boeing-Debuts-First-737-MAX-7
 
