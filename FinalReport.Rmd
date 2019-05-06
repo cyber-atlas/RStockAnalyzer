@@ -2,7 +2,8 @@
 title: "FinalReport"
 author: "cyber-atlas"
 date: "5/5/2019"
-output: html_document
+output:
+html_document: default
 ---
 
 # **Stock Analysis With R** 
